@@ -1,0 +1,3581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>YPT MINIMAL — 열품타 스터디 타이머</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #FFFFFF;
+      --bg-subtle: #F4F4F5;
+      --ink-primary: #0A0A0A;
+      --ink-secondary: #52525B;
+      --ink-tertiary: #71717A;
+      --border-hairline: #E4E4E7;
+
+      --fs-hero-timer: clamp(1.85rem, 7.5vw, 4rem);
+      --fs-focus-timer: clamp(2.35rem, 11.5vw, 6rem);
+      --fs-title: clamp(0.95rem, 2.2vw, 1.15rem);
+      --fs-body: clamp(0.78rem, 1.8vw, 0.875rem);
+      --fs-micro: clamp(0.68rem, 1.5vw, 0.78rem);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      font-size: clamp(13px, 1.6vw, 16px);
+    }
+
+    @media (max-width: 380px) {
+      html {
+        font-size: 12.5px;
+      }
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #F4F4F5;
+      color: var(--ink-primary);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .tabular-nums {
+      font-family: 'JetBrains Mono', 'Pretendard', monospace;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+    }
+
+    .fluid-hero-timer {
+      font-size: var(--fs-hero-timer);
+      line-height: 1.08;
+    }
+
+    .fluid-focus-timer {
+      font-size: var(--fs-focus-timer);
+      line-height: 1.05;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D4D4D8;
+      border-radius: 9999px;
+    }
+
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+    .pulse-dot {
+      animation: subtlePulse 1.6s infinite ease-in-out;
+    }
+
+    .toast-enter {
+      transform: translateY(16px);
+      opacity: 0;
+    }
+    .toast-active {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .timeline-cell {
+      transition: background-color 0.1s ease;
+    }
+    .timeline-cell:hover {
+      outline: 1.5px solid #0A0A0A;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center bg-[#F4F4F5] text-[#0A0A0A]">
+
+  <!-- ==================== LOGIN GATE ==================== -->
+  <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-[#F4F4F5] p-3 sm:p-6 overflow-y-auto">
+    <div class="w-full max-w-sm sm:max-w-md bg-white border border-[#E4E4E7] rounded-3xl p-5 sm:p-8 shadow-sm my-auto">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button type="button" onclick="handleLogoSecretClick()" class="w-10 h-10 rounded-xl bg-[#0A0A0A] text-white flex items-center justify-center font-bold text-xs tracking-tighter select-none shrink-0 active:scale-95 transition">
+            YPT
+          </button>
+          <div class="min-w-0">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-[#0A0A0A] leading-snug">YPT MINIMAL</h1>
+            <p class="text-[11px] sm:text-xs text-[#71717A] leading-snug">열품타 스터디 타이머 & 플래너</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#F4F4F5] border border-[#E4E4E7] text-[11px] font-semibold text-[#52525B] shrink-0">
+          <span id="login-sync-dot" class="w-2 h-2 rounded-full bg-green-600"></span>
+          <span id="login-sync-text">자동 연결</span>
+        </div>
+      </div>
+
+      <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-[#52525B] mb-1.5">아이디</label>
+          <input id="login-id-input" type="text" autocomplete="username" placeholder="아이디 입력" class="w-full px-3.5 py-3 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[#52525B] mb-1.5">비밀번호</label>
+          <input id="login-pw-input" type="password" autocomplete="current-password" placeholder="비밀번호 입력" class="w-full px-3.5 py-3 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
+        </div>
+        <button type="submit" id="login-submit-btn" class="w-full py-3.5 rounded-xl bg-[#0A0A0A] text-white text-sm font-bold hover:bg-[#27272A] active:scale-[0.99] transition">
+          로그인
+        </button>
+      </form>
+
+      <div class="mt-6 pt-4 border-t border-[#F4F4F5] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#71717A]">
+        <span>계정 생성은 관리자 전용입니다</span>
+        <span>동기화 자동 적용 중</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN ADAPTIVE APP SHELL ==================== -->
+  <div id="app" class="hidden w-full max-w-2xl lg:max-w-5xl min-h-screen bg-white border-x border-[#E4E4E7] flex-col relative">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[#E4E4E7] px-3 sm:px-6 lg:px-8 py-2.5">
+      <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <button type="button" id="top-logo-btn" onclick="handleLogoSecretClick()" class="w-8 h-8 rounded-lg bg-[#0A0A0A] text-white flex items-center justify-center font-bold text-xs tracking-tighter select-none shrink-0 active:scale-95 transition" title="YPT MINIMAL">
+            YPT
+          </button>
+          <button id="btn-dday" onclick="openDdayModal()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#E4E4E7] hover:border-[#0A0A0A] bg-[#F4F4F5] transition text-xs font-medium min-w-0">
+            <span id="header-dday-title" class="text-[#52525B] max-w-[90px] sm:max-w-[140px] truncate">D-Day 미설정</span>
+            <span id="header-dday-badge" class="font-bold text-[#0A0A0A] tabular-nums shrink-0">+ 설정</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-0.5 bg-[#F4F4F5] border border-[#E4E4E7] rounded-full p-0.5 shrink-0 order-3 sm:order-2 w-full sm:w-auto justify-between sm:justify-center">
+          <button onclick="changeDate(-1)" aria-label="이전 날짜" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-white text-[#52525B] hover:text-[#0A0A0A] transition shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button id="btn-current-date" onclick="switchTab('calendar')" class="px-2.5 sm:px-3 py-1 text-xs font-semibold tabular-nums tracking-tight hover:bg-white rounded-full transition flex items-center justify-center gap-1.5 flex-1 sm:flex-initial" title="캘린더 열기">
+            <span id="header-date-label">2026.11.25 (수)</span>
+            <span id="header-today-pill" class="px-1.5 py-0.5 rounded bg-[#0A0A0A] text-white text-[9px] font-bold leading-none shrink-0">오늘</span>
+          </button>
+          <button onclick="changeDate(1)" aria-label="다음 날짜" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-white text-[#52525B] hover:text-[#0A0A0A] transition shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+
+        <button onclick="openProfileModal()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-[#E4E4E7] hover:border-[#0A0A0A] bg-white text-xs font-semibold transition shrink-0 order-2 sm:order-3">
+          <span id="header-sync-dot" class="w-2 h-2 rounded-full bg-green-600 shrink-0"></span>
+          <span id="header-user-name" class="max-w-[90px] sm:max-w-[120px] truncate text-[#0A0A0A]">관리자</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Viewport -->
+    <main class="flex-1 pb-24">
+
+      <!-- ==================== TAB 1: TIMER ==================== -->
+      <section id="tab-timer" class="tab-panel">
+        <div class="px-4 sm:px-8 pt-5 sm:pt-7 pb-5 sm:pb-6 border-b border-[#E4E4E7] bg-white">
+          <div class="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+            <span class="text-[11px] font-semibold uppercase tracking-widest text-[#71717A]">TOTAL FOCUS TIME</span>
+            <span id="goal-progress-label" class="hidden text-xs font-semibold text-[#0A0A0A] tabular-nums">목표 0시간 · 0%</span>
+          </div>
+
+          <div class="flex flex-wrap items-baseline justify-between gap-3">
+            <div id="total-time-display" class="fluid-hero-timer font-bold tracking-tight text-[#0A0A0A] tabular-nums my-1">
+              00:00:00
+            </div>
+            <div class="text-left sm:text-right shrink-0">
+              <div class="text-[11px] text-[#71717A]">최대 연속 집중</div>
+              <div id="hero-sub-metric-value" class="text-sm sm:text-base font-semibold tabular-nums text-[#0A0A0A]">00:00:00</div>
+            </div>
+          </div>
+
+          <div id="goal-progress-bar-wrap" class="hidden w-full h-1.5 bg-[#F4F4F5] rounded-full overflow-hidden mt-4">
+            <div id="goal-progress-bar" class="h-full bg-[#0A0A0A] rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+
+          <!-- Active / Paused Session Bar -->
+          <div id="live-timer-banner" class="hidden mt-4 p-3 rounded-2xl bg-[#0A0A0A] text-white flex flex-wrap items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+              <span id="live-banner-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot shrink-0"></span>
+              <div class="min-w-0 flex-1">
+                <div id="live-banner-mode-label" class="text-[10px] text-white/60 uppercase tracking-wider">RUNNING SESSION</div>
+                <div class="text-xs font-bold leading-snug">
+                  <span id="live-banner-subject">과목</span> · <span id="live-banner-elapsed" class="tabular-nums">00:00:00</span>
+                  <span id="live-banner-pause-elapsed" class="hidden text-amber-300 ml-1 tabular-nums">(일시정지 00:00:00)</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+              <button type="button" onclick="reopenFocusOverlay()" class="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-[11px] font-semibold transition">
+                집중화면
+              </button>
+              <button type="button" id="banner-pause-resume-btn" onclick="handlePauseOrResumeClick()" class="px-3 py-1.5 rounded-xl bg-white text-[#0A0A0A] hover:bg-neutral-200 text-[11px] font-bold transition">
+                ❚❚ 일시정지
+              </button>
+              <button type="button" onclick="finishFocusSession()" class="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-[11px] font-semibold transition">
+                세션 종료
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[#52525B]">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#0A0A0A] shrink-0"></span>
+              <span id="user-status-preview" class="leading-snug">오늘도 흔들림 없이 집중하기</span>
+            </div>
+            <button onclick="copyAccountCode()" class="px-2.5 py-1 rounded-lg bg-[#F4F4F5] border border-[#E4E4E7] hover:border-[#0A0A0A] text-[#0A0A0A] font-bold tabular-nums shrink-0 transition" id="hero-account-code-btn" title="내 계정 고유 코드 복사">
+              STD-000000
+            </button>
+          </div>
+        </div>
+
+        <div class="px-4 sm:px-8 pt-5 pb-2.5 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm sm:text-base font-bold tracking-tight text-[#0A0A0A]">과목별 측정</h2>
+            <span id="subject-count-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F4F4F5] border border-[#E4E4E7] text-[#52525B] tabular-nums">0</span>
+          </div>
+          <button onclick="openSubjectModal()" class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#0A0A0A] text-white text-xs font-semibold hover:bg-[#27272A] active:scale-[0.98] transition shrink-0">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>과목 추가</span>
+          </button>
+        </div>
+
+        <div id="subject-list" class="px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-2 gap-2.5 pb-4">
+        </div>
+
+        <div class="px-4 sm:px-8 py-3 text-center">
+          <p class="text-[11px] text-[#71717A] leading-relaxed">일시정지(❚❚) 시 세션이 유지되며 일시정지 시간이 카운트됩니다. 다시 시작할 때 사유(선택)를 적으면 타이머 기록에 함께 저장됩니다.</p>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 2: CALENDAR ==================== -->
+      <section id="tab-calendar" class="tab-panel hidden">
+        <div class="px-4 sm:px-8 py-5 border-b border-[#E4E4E7] bg-white">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="min-w-0">
+              <h2 class="text-base font-bold tracking-tight">학습 캘린더</h2>
+              <p class="text-xs text-[#71717A] mt-0.5 leading-snug">날짜를 눌러 해당일의 공부 기록과 플래너를 확인하세요</p>
+            </div>
+            <div class="flex items-center gap-1 bg-[#F4F4F5] border border-[#E4E4E7] rounded-full p-0.5 shrink-0">
+              <button onclick="changeCalendarMonth(-1)" aria-label="이전 달" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-white text-[#52525B] hover:text-[#0A0A0A] transition">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <span id="calendar-month-label" class="px-2.5 text-xs font-bold tabular-nums">2026년 11월</span>
+              <button onclick="changeCalendarMonth(1)" aria-label="다음 달" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-white text-[#52525B] hover:text-[#0A0A0A] transition">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-7 gap-1 sm:gap-2 mt-5 mb-1.5 text-center text-[11px] font-bold select-none">
+            <div class="text-red-500">일</div>
+            <div class="text-[#52525B]">월</div>
+            <div class="text-[#52525B]">화</div>
+            <div class="text-[#52525B]">수</div>
+            <div class="text-[#52525B]">목</div>
+            <div class="text-[#52525B]">금</div>
+            <div class="text-blue-600">토</div>
+          </div>
+
+          <div id="calendar-grid" class="grid grid-cols-7 gap-1 sm:gap-2">
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 mt-4 pt-3 border-t border-[#F4F4F5] text-[11px] text-[#71717A]">
+            <div class="flex items-center gap-2">
+              <span>공부량 농도:</span>
+              <span class="w-3 h-3 rounded-xs bg-[#E4E4E7] inline-block" title="3시간 미만"></span>
+              <span class="w-3 h-3 rounded-xs bg-[#52525B] inline-block" title="3시간 이상"></span>
+              <span class="w-3 h-3 rounded-xs bg-[#0A0A0A] inline-block" title="6시간 이상"></span>
+            </div>
+            <button onclick="goToday()" class="font-semibold text-[#0A0A0A] hover:underline">오늘 날짜로 이동</button>
+          </div>
+        </div>
+
+        <div id="calendar-inspector" class="p-4 sm:p-8 bg-white">
+        </div>
+      </section>
+
+      <!-- ==================== TAB 3: PLANNER & FULL 24-HOUR TIMETABLE ==================== -->
+      <section id="tab-planner" class="tab-panel hidden">
+        <div class="px-4 sm:px-8 py-5 border-b border-[#E4E4E7] bg-white">
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+            <div class="min-w-0 flex-1">
+              <h2 id="planner-header-title" class="text-base font-bold tracking-tight leading-snug">플래너 & 24시간 타임테이블</h2>
+              <p class="text-xs text-[#71717A] mt-0.5 leading-snug">00시 ~ 23시 24시간 전체 타임테이블(10분 단위)과 할 일을 관리하세요</p>
+            </div>
+            <div class="text-left sm:text-right shrink-0">
+              <span class="text-[11px] text-[#71717A] block">할 일 달성률</span>
+              <span id="planner-completion-rate" class="text-lg font-bold tabular-nums text-[#0A0A0A]">0%</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-[#F4F4F5]">
+            <span class="text-[11px] font-medium text-[#52525B] shrink-0">타임라인 브러시:</span>
+            <div id="timeline-brush-list" class="flex flex-wrap items-center gap-1.5 py-1">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-[#E4E4E7]">
+          <div class="lg:col-span-6 p-3.5 sm:p-6 bg-[#FAFAFB] overflow-x-auto">
+            <div class="min-w-[300px]">
+              <div class="flex flex-wrap items-center justify-between gap-1 mb-2.5">
+                <span class="text-xs font-bold tracking-tight text-[#0A0A0A]">24시간 타임테이블 (00시 ~ 23시 · 10분 단위)</span>
+                <span class="text-[10px] text-[#71717A] tabular-nums">00:00 — 23:50</span>
+              </div>
+
+              <div class="grid grid-cols-[44px_repeat(6,1fr)_42px] gap-[3px] mb-1.5 text-[10px] font-semibold text-[#71717A] text-center tabular-nums select-none">
+                <div>시간</div>
+                <div>10분</div>
+                <div>20분</div>
+                <div>30분</div>
+                <div>40분</div>
+                <div>50분</div>
+                <div>60분</div>
+                <div>합계</div>
+              </div>
+
+              <div id="timeline-grid" class="space-y-[3px] select-none">
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 p-4 sm:p-6 bg-white flex flex-col">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <span class="text-xs font-bold tracking-tight text-[#0A0A0A]">TO-DO LIST</span>
+              <div class="flex items-center gap-1 bg-[#F4F4F5] p-0.5 rounded-lg border border-[#E4E4E7] text-[11px]">
+                <button onclick="setTodoFilter('all')" id="filter-all" class="px-2 py-0.5 rounded-md font-semibold bg-white text-[#0A0A0A]">전체</button>
+                <button onclick="setTodoFilter('active')" id="filter-active" class="px-2 py-0.5 rounded-md font-medium text-[#52525B]">미완료</button>
+                <button onclick="setTodoFilter('done')" id="filter-done" class="px-2 py-0.5 rounded-md font-medium text-[#52525B]">완료</button>
+              </div>
+            </div>
+
+            <form onsubmit="handleAddTodo(event)" class="flex flex-wrap sm:flex-nowrap gap-1.5 mb-4">
+              <select id="todo-subject-select" class="px-2.5 py-2 rounded-xl border border-[#E4E4E7] bg-[#F4F4F5] text-xs font-medium text-[#0A0A0A] focus:outline-none focus:border-[#0A0A0A] w-full sm:w-auto sm:max-w-[130px]">
+              </select>
+              <input id="todo-input" type="text" placeholder="할 일을 입력하세요" class="flex-1 min-w-0 px-3 py-2 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
+              <button type="submit" class="px-3.5 py-2 rounded-xl bg-[#0A0A0A] text-white text-xs font-semibold hover:bg-[#27272A] shrink-0 transition">
+                추가
+              </button>
+            </form>
+
+            <div id="todo-list" class="space-y-2 flex-1">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 4: STATISTICS ==================== -->
+      <section id="tab-stats" class="tab-panel hidden">
+        <div class="px-4 sm:px-8 py-5 border-b border-[#E4E4E7] bg-white">
+          <h2 class="text-base font-bold tracking-tight">학습 통계 & 분석</h2>
+          <p class="text-xs text-[#71717A] mt-0.5 leading-snug">선택한 날짜 기준 일간·주간·과목별 집중 데이터 및 타이머 기록입니다</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3.5 mt-4">
+            <div class="p-3 sm:p-4 rounded-2xl border border-[#E4E4E7] bg-[#F4F4F5]">
+              <div class="text-[11px] text-[#71717A] font-medium">선택일 총 공부</div>
+              <div id="stat-day-total" class="text-base sm:text-lg font-bold tabular-nums mt-1 text-[#0A0A0A]">00:00:00</div>
+            </div>
+            <div class="p-3 sm:p-4 rounded-2xl border border-[#E4E4E7] bg-[#F4F4F5]">
+              <div class="text-[11px] text-[#71717A] font-medium">7일 일평균</div>
+              <div id="stat-week-avg" class="text-base sm:text-lg font-bold tabular-nums mt-1 text-[#0A0A0A]">00:00:00</div>
+            </div>
+            <div class="p-3 sm:p-4 rounded-2xl border border-[#E4E4E7] bg-[#F4F4F5]">
+              <div class="text-[11px] text-[#71717A] font-medium">연속 공부일</div>
+              <div id="stat-streak" class="text-base sm:text-lg font-bold tabular-nums mt-1 text-[#0A0A0A]">0일</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 sm:px-8 py-6 border-b border-[#E4E4E7] bg-white">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[#52525B]">최근 7일 학습 추이</h3>
+            <span id="stat-week-total" class="text-xs font-semibold tabular-nums text-[#0A0A0A]">주간 합계 0시간 0분</span>
+          </div>
+          <div id="weekly-chart-container" class="w-full h-44 sm:h-52 flex items-end justify-between gap-1.5 sm:gap-2 pt-4 px-1">
+          </div>
+        </div>
+
+        <div class="px-4 sm:px-8 py-6 border-b border-[#E4E4E7] bg-white">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[#52525B]">과목(섹터)별 학습 현황</h3>
+            <span class="text-[11px] text-[#71717A]">누적 시간 & 세션 시각</span>
+          </div>
+          <div id="subject-stats-list" class="space-y-3.5">
+          </div>
+        </div>
+
+        <div class="px-4 sm:px-8 py-6 bg-white">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[#52525B]">과목별 타이머 기록 (누르면 상세 보기)</h3>
+            <span id="stat-session-count" class="text-[11px] text-[#71717A] tabular-nums">0건</span>
+          </div>
+          <div id="session-logs-list" class="space-y-2.5">
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== TAB 5: FRIENDS LIST ==================== -->
+      <section id="tab-group" class="tab-panel hidden">
+        <div class="px-4 sm:px-8 py-5 border-b border-[#E4E4E7] bg-white">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2 py-0.5 rounded-md bg-[#0A0A0A] text-white text-[10px] font-bold tracking-wider shrink-0">FRIENDS & SECTORS</span>
+                <h2 class="text-base font-bold tracking-tight leading-snug">친구 공유 기록 (일별 · 주일별 · 월별)</h2>
+              </div>
+              <p class="text-xs text-[#71717A] mt-1 leading-snug">일별·주일별·월별 기간으로 친구들의 전체 공부 시간과 과목(섹터)별 누적 시간을 확인하세요</p>
+            </div>
+            <div class="text-left sm:text-right shrink-0">
+              <div class="text-xs font-bold tabular-nums text-[#0A0A0A]" id="group-online-count">0명 열공중</div>
+              <div class="text-[11px] text-[#71717A] tabular-nums" id="group-avg-time">평균 00:00:00</div>
+            </div>
+          </div>
+
+          <div class="mt-4 p-3.5 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7] space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="text-xs">
+                <span class="text-[#71717A] mr-1.5">내 계정 고유 코드:</span>
+                <span id="my-account-code-display" class="font-bold tabular-nums tracking-wider text-[#0A0A0A]">STD-000000</span>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="manualSyncNow()" class="px-2.5 py-1 rounded-lg bg-white border border-[#E4E4E7] hover:border-[#0A0A0A] text-[11px] font-medium text-[#52525B] transition">
+                  새로고침
+                </button>
+                <button onclick="copyAccountCode()" class="px-2.5 py-1 rounded-lg bg-[#0A0A0A] text-white text-[11px] font-semibold transition">
+                  코드 복사
+                </button>
+              </div>
+            </div>
+
+            <form onsubmit="handleAddFriendByAccountCode(event)" class="flex flex-wrap sm:flex-nowrap gap-1.5">
+              <input id="friend-code-input" type="text" maxlength="12" placeholder="친구 계정 코드 입력 (STD-XXXXXX)" class="flex-1 min-w-0 px-3 py-2 rounded-xl border border-[#E4E4E7] bg-white text-xs uppercase tracking-wider tabular-nums focus:outline-none focus:border-[#0A0A0A]" required />
+              <button type="submit" class="px-3.5 py-2 rounded-xl bg-[#0A0A0A] text-white text-xs font-semibold hover:bg-[#27272A] shrink-0 transition">
+                친구 추가
+              </button>
+            </form>
+          </div>
+
+          <!-- Period Selector (일별 / 주일별 / 월별) & Period Range Label -->
+          <div class="mt-4 pt-3 border-t border-[#F4F4F5] flex flex-wrap items-center justify-between gap-2.5">
+            <div class="inline-flex items-center gap-1 bg-[#F4F4F5] p-1 rounded-xl border border-[#E4E4E7] text-xs">
+              <button type="button" onclick="setGroupPeriod('daily')" id="grp-period-daily" class="px-3 py-1 rounded-lg font-bold bg-white text-[#0A0A0A] shadow-2xs transition">
+                일별
+              </button>
+              <button type="button" onclick="setGroupPeriod('weekly')" id="grp-period-weekly" class="px-3 py-1 rounded-lg font-medium text-[#52525B] hover:text-[#0A0A0A] transition">
+                주일별
+              </button>
+              <button type="button" onclick="setGroupPeriod('monthly')" id="grp-period-monthly" class="px-3 py-1 rounded-lg font-medium text-[#52525B] hover:text-[#0A0A0A] transition">
+                월별
+              </button>
+            </div>
+            <span id="group-period-range-label" class="text-[11px] font-semibold text-[#52525B] tabular-nums">기준: 2026.11.25 (수)</span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5 mt-3">
+            <button onclick="setGroupFilter('all')" id="grp-filter-all" class="px-3 py-1 rounded-full text-xs font-semibold bg-[#0A0A0A] text-white transition">전체</button>
+            <button onclick="setGroupFilter('studying')" id="grp-filter-studying" class="px-3 py-1 rounded-full text-xs font-medium bg-[#F4F4F5] text-[#52525B] border border-[#E4E4E7] transition">공부중</button>
+            <button onclick="setGroupFilter('resting')" id="grp-filter-resting" class="px-3 py-1 rounded-full text-xs font-medium bg-[#F4F4F5] text-[#52525B] border border-[#E4E4E7] transition">일시정지/대기</button>
+          </div>
+        </div>
+
+        <div id="incoming-cheers-banner" class="hidden px-4 sm:px-8 py-2.5 bg-[#0A0A0A] text-white text-xs flex items-center justify-between gap-2">
+          <span id="incoming-cheer-text" class="leading-snug">친구가 응원을 보냈습니다!</span>
+          <button onclick="dismissCheerBanner()" class="text-white/70 hover:text-white ml-2 shrink-0">확인</button>
+        </div>
+
+        <div id="group-members-grid" class="p-4 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        </div>
+      </section>
+
+      <!-- ==================== TAB 6: ADMIN DASHBOARD ==================== -->
+      <section id="tab-admin" class="tab-panel hidden">
+        <div class="px-4 sm:px-8 py-5 border-b border-[#E4E4E7] bg-[#0A0A0A] text-white">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-white text-[#0A0A0A] text-[10px] font-bold tracking-wider shrink-0">ADMIN MODE</span>
+                <h2 class="text-base font-bold tracking-tight leading-snug">관리자 제어 센터</h2>
+              </div>
+              <p class="text-xs text-white/70 mt-1 leading-snug">계정 발급 및 사용자별 D-Day·타이머 기록 삭제·플래너·투두리스트·월별/일별/시간별 학습 기록을 열람합니다</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="manualSyncNow()" class="px-3 py-1.5 rounded-full bg-white text-[#0A0A0A] text-xs font-bold hover:bg-neutral-200 transition">
+                즉시 동기화
+              </button>
+              <button onclick="exitAdminMode()" class="px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 text-xs font-semibold transition">
+                종료
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-4 sm:px-8 py-5 border-b border-[#E4E4E7] bg-white">
+          <h3 class="text-sm font-bold text-[#0A0A0A] mb-1">새 사용자 계정 발급</h3>
+          <p class="text-xs text-[#71717A] mb-4 leading-snug">발급 시 계정별 고유 공유 코드(STD-XXXXXX)가 자동 부여되며 초기 D-Day는 미설정 상태로 생성됩니다.</p>
+
+          <form onsubmit="handleAdminCreateUser(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <input id="admin-new-id" type="text" maxlength="20" placeholder="사용자 아이디" class="px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
+            <input id="admin-new-pw" type="text" maxlength="30" placeholder="비밀번호" class="px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
+            <div class="flex gap-1.5">
+              <input id="admin-new-nick" type="text" maxlength="14" placeholder="표시 닉네임" class="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
+              <button type="submit" class="px-4 py-2.5 rounded-xl bg-[#0A0A0A] text-white text-xs font-bold hover:bg-[#27272A] shrink-0 transition">
+                생성
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="px-4 sm:px-8 py-5 bg-white">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-[#0A0A0A]">전체 사용자 상세 모니터링</h3>
+              <span id="admin-total-users-badge" class="text-xs font-bold tabular-nums px-2.5 py-0.5 rounded-full bg-[#F4F4F5] border border-[#E4E4E7]">총 0명</span>
+            </div>
+            <button onclick="manualSyncNow()" class="text-xs font-semibold underline underline-offset-2 text-[#52525B] hover:text-[#0A0A0A]">
+              동기화
+            </button>
+          </div>
+          <div id="admin-users-list" class="space-y-3">
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 w-full max-w-2xl lg:max-w-5xl bg-white/95 backdrop-blur border-t border-[#E4E4E7] z-30 px-1 py-1.5">
+      <div id="bottom-nav-grid" class="grid grid-cols-5 gap-0.5">
+        <button onclick="switchTab('timer')" data-tab="timer" class="nav-btn flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[#0A0A0A] font-bold transition min-w-0">
+          <svg class="mb-0.5 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M5 3 2 6"></path><path d="m22 6-3-3"></path><path d="M10 2h4"></path></svg>
+          <span class="text-[10px] sm:text-xs leading-tight whitespace-nowrap">타이머</span>
+        </button>
+
+        <button onclick="switchTab('calendar')" data-tab="calendar" class="nav-btn flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[#71717A] font-medium hover:text-[#0A0A0A] transition min-w-0">
+          <svg class="mb-0.5 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <span class="text-[10px] sm:text-xs leading-tight whitespace-nowrap">캘린더</span>
+        </button>
+
+        <button onclick="switchTab('planner')" data-tab="planner" class="nav-btn flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[#71717A] font-medium hover:text-[#0A0A0A] transition min-w-0">
+          <svg class="mb-0.5 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          <span class="text-[10px] sm:text-xs leading-tight whitespace-nowrap">플래너</span>
+        </button>
+
+        <button onclick="switchTab('stats')" data-tab="stats" class="nav-btn flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[#71717A] font-medium hover:text-[#0A0A0A] transition min-w-0">
+          <svg class="mb-0.5 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span class="text-[10px] sm:text-xs leading-tight whitespace-nowrap">통계</span>
+        </button>
+
+        <button onclick="switchTab('group')" data-tab="group" class="nav-btn flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[#71717A] font-medium hover:text-[#0A0A0A] transition min-w-0">
+          <svg class="mb-0.5 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span class="text-[10px] sm:text-xs leading-tight whitespace-nowrap">친구</span>
+        </button>
+
+        <button id="nav-btn-admin" onclick="switchTab('admin')" data-tab="admin" class="nav-btn hidden flex-col items-center justify-center py-1.5 px-0.5 rounded-xl text-[#71717A] font-medium hover:text-[#0A0A0A] transition min-w-0">
+          <svg class="mb-0.5 shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span class="text-[10px] sm:text-xs leading-tight whitespace-nowrap">관리자</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ==================== FULL-SCREEN FOCUS MODE OVERLAY ==================== -->
+  <div id="focus-overlay" class="fixed inset-0 z-50 hidden flex-col justify-between bg-[#0A0A0A] text-white p-4 sm:p-10 select-none transition-colors duration-300 overflow-y-auto">
+    <div class="flex flex-wrap items-center justify-between gap-2 max-w-2xl w-full mx-auto">
+      <div class="flex items-center gap-2 min-w-0">
+        <span id="focus-subject-dot" class="w-3 h-3 rounded-full bg-white shrink-0"></span>
+        <span id="focus-subject-name" class="text-base sm:text-lg font-bold tracking-tight">공통국어2</span>
+        <span id="focus-state-badge" class="px-2 py-0.5 rounded-full bg-white/10 text-[11px] font-medium text-white/80 shrink-0">측정중</span>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        <span id="focus-start-badge" class="text-xs text-white/60 tabular-nums">시작 --:--:--</span>
+        <span id="focus-realtime-clock" class="text-sm font-medium text-white/60 tabular-nums">오후 08:06</span>
+      </div>
+    </div>
+
+    <div class="my-auto py-6 text-center max-w-2xl w-full mx-auto">
+      <div id="focus-session-label" class="text-xs uppercase tracking-[0.22em] text-white/45 mb-3">CURRENT SESSION</div>
+      <div id="focus-session-timer" class="fluid-focus-timer font-bold tracking-tight tabular-nums text-white">
+        00:00:00
+      </div>
+
+      <div id="focus-pause-elapsed-box" class="hidden mt-3 inline-flex flex-wrap items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-semibold tabular-nums">
+        <span>일시정지 경과 시간:</span>
+        <span id="focus-pause-elapsed-timer">00:00:00</span>
+      </div>
+
+      <div class="mt-7 inline-flex flex-wrap justify-center items-center gap-3 sm:gap-5 px-4 sm:px-5 py-2.5 rounded-2xl bg-white/[0.06] border border-white/10 text-xs sm:text-sm">
+        <div>
+          <span class="text-white/50 mr-1.5">과목 누적</span>
+          <span id="focus-subject-total" class="font-bold tabular-nums">00:00:00</span>
+        </div>
+        <div id="focus-subject-goal-wrap" class="hidden items-center gap-3 sm:gap-5">
+          <div class="w-[1px] h-3.5 bg-white/15"></div>
+          <div>
+            <span class="text-white/50 mr-1.5">목표 달성</span>
+            <span id="focus-subject-goal-pct" class="font-bold tabular-nums">0%</span>
+          </div>
+        </div>
+        <div class="w-[1px] h-3.5 bg-white/15"></div>
+        <div>
+          <span class="text-white/50 mr-1.5">오늘 총합</span>
+          <span id="focus-day-total" class="font-bold tabular-nums">00:00:00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-md w-full mx-auto space-y-3">
+      <div class="grid grid-cols-2 gap-2.5">
+        <button id="btn-whitenoise" onclick="toggleWhiteNoise()" class="flex items-center justify-center gap-1.5 py-3 px-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs sm:text-sm font-medium transition">
+          <svg class="shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+          <span id="whitenoise-label" class="whitespace-nowrap">백색소음 OFF</span>
+        </button>
+
+        <button id="btn-dim-mode" onclick="toggleDimMode()" class="flex items-center justify-center gap-1.5 py-3 px-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs sm:text-sm font-medium transition">
+          <svg class="shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          <span id="dim-label" class="whitespace-nowrap">절전 화면 OFF</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <button id="focus-pause-btn" onclick="handlePauseOrResumeClick()" class="py-3.5 px-3 rounded-2xl bg-white text-[#0A0A0A] hover:bg-neutral-200 active:scale-[0.99] font-bold text-xs sm:text-sm tracking-tight flex items-center justify-center gap-1.5 transition shadow-lg whitespace-nowrap">
+          <span id="focus-pause-icon">❚❚</span>
+          <span id="focus-pause-text">타이머 일시정지</span>
+        </button>
+
+        <button onclick="finishFocusSession()" class="py-3.5 px-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 text-white active:scale-[0.99] font-bold text-xs sm:text-sm tracking-tight flex items-center justify-center gap-1.5 transition whitespace-nowrap">
+          <span>세션 종료</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Timer Record Detail Modal -->
+  <div id="session-detail-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/55 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-lg p-5 sm:p-6 shadow-2xl my-auto">
+      <div class="flex items-center justify-between gap-2 pb-3 border-b border-[#F4F4F5]">
+        <div class="flex items-center gap-2 min-w-0">
+          <span id="sdm-dot" class="w-3 h-3 rounded-full shrink-0 bg-[#0A0A0A]"></span>
+          <h3 id="sdm-title" class="text-base font-bold text-[#0A0A0A] leading-snug">타이머 기록 상세</h3>
+        </div>
+        <button type="button" onclick="closeModal('session-detail-modal')" class="w-8 h-8 rounded-full hover:bg-[#F4F4F5] flex items-center justify-center text-[#71717A] font-bold shrink-0">✕</button>
+      </div>
+      <div id="sdm-body" class="pt-4 space-y-3 text-xs">
+      </div>
+    </div>
+  </div>
+
+  <!-- Pause Reason Modal -->
+  <div id="pause-reason-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/65 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="bg-white text-[#0A0A0A] border border-[#E4E4E7] rounded-3xl w-full max-w-sm p-5 sm:p-6 shadow-2xl my-auto">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-base font-bold tracking-tight">다시 시작 · 일시정지 기록</h3>
+        <button type="button" onclick="cancelResumeModal()" class="w-7 h-7 rounded-full hover:bg-[#F4F4F5] flex items-center justify-center text-[#71717A]">✕</button>
+      </div>
+      <p class="text-xs text-[#52525B] mb-3 leading-relaxed">
+        일시정지 시간 <span id="resume-modal-pause-duration" class="font-bold tabular-nums text-[#0A0A0A]">00:00:00</span>이 타이머 기록에 저장됩니다. 사유는 선택 사항이며 비워두면 <span class="font-semibold">사유 없음</span>으로 남습니다.
+      </p>
+      <form onsubmit="confirmResumeWithReason(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-[#52525B] mb-1.5">일시정지 사유 (선택)</label>
+          <input id="pause-reason-input" type="text" maxlength="80" placeholder="일시정지 사유 입력 (미입력 시 사유 없음)" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" />
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="confirmResumeWithoutReason()" class="px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-xs font-semibold text-[#52525B] hover:border-[#0A0A0A] transition">
+            사유 없이 재개
+          </button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-[#0A0A0A] text-white text-xs font-bold hover:bg-[#27272A] transition">
+            사유 기록 후 재개
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Secret Admin Password Modal -->
+  <div id="admin-gate-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-xs p-6 shadow-xl my-auto">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#0A0A0A]"></span>
+          <h3 class="text-sm font-bold tracking-tight">관리자 모드 인증</h3>
+        </div>
+        <button onclick="closeModal('admin-gate-modal')" class="w-7 h-7 rounded-full hover:bg-[#F4F4F5] flex items-center justify-center text-[#71717A]">✕</button>
+      </div>
+      <p class="text-xs text-[#71717A] mb-4 leading-relaxed">관리자 비밀번호를 입력하면 계정 생성 및 전체 사용자 상세 기록 조회가 활성화됩니다.</p>
+      <form onsubmit="handleAdminGateSubmit(event)" class="space-y-3">
+        <input id="admin-gate-pw-input" type="password" placeholder="관리자 비밀번호 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#0A0A0A] text-white text-xs font-bold hover:bg-[#27272A] transition">
+          관리자 모드 입장
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Profile & Account Code Modal -->
+  <div id="profile-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-sm p-6 shadow-xl my-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold">내 계정 정보</h3>
+        <button onclick="closeModal('profile-modal')" class="w-7 h-7 rounded-full hover:bg-[#F4F4F5] flex items-center justify-center text-[#71717A]">✕</button>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7] space-y-2 mb-4">
+        <div class="flex items-center justify-between gap-2 text-xs">
+          <span class="text-[#71717A]">로그인 아이디</span>
+          <span id="prof-user-id" class="font-bold text-[#0A0A0A]">-</span>
+        </div>
+        <div class="flex items-center justify-between gap-2 text-xs pt-2 border-t border-[#E4E4E7]">
+          <span class="text-[#71717A]">계정 고유 코드</span>
+          <button onclick="copyAccountCode()" id="prof-account-code" class="font-bold tabular-nums text-[#0A0A0A] underline underline-offset-2">STD-000000</button>
+        </div>
+      </div>
+
+      <form onsubmit="handleProfileSave(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-[#52525B] mb-1">표시 닉네임</label>
+          <input id="prof-nickname-input" type="text" maxlength="14" class="w-full px-3.5 py-2 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[#52525B] mb-1">상태 메시지</label>
+          <input id="prof-status-input" type="text" maxlength="32" class="w-full px-3.5 py-2 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" />
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#0A0A0A] text-white text-xs font-semibold hover:bg-[#27272A] transition">
+          저장하기
+        </button>
+      </form>
+
+      <button onclick="handleLogout()" class="w-full mt-2.5 py-2 rounded-xl border border-[#E4E4E7] hover:border-red-500 hover:text-red-600 text-xs font-semibold text-[#52525B] transition">
+        로그아웃
+      </button>
+    </div>
+  </div>
+
+  <!-- Subject Add/Edit Modal -->
+  <div id="subject-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-sm p-6 shadow-xl my-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="subject-modal-title" class="text-base font-bold">새 과목 추가</h3>
+        <button onclick="closeModal('subject-modal')" class="w-7 h-7 rounded-full hover:bg-[#F4F4F5] flex items-center justify-center text-[#71717A]">✕</button>
+      </div>
+      <form onsubmit="saveSubject(event)" class="space-y-4">
+        <input type="hidden" id="edit-subject-id" />
+        <div>
+          <label class="block text-xs font-semibold text-[#52525B] mb-1.5">과목명</label>
+          <input id="subject-name-input" type="text" maxlength="16" placeholder="과목명 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
+        </div>
+
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-1 mb-1.5">
+            <label class="text-xs font-semibold text-[#52525B]">과목 목표 시간 (선택)</label>
+            <span class="text-[11px] text-[#71717A]">미설정 시 % 표시 안 함</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="relative">
+              <input id="subject-goal-hours" type="number" min="0" max="23" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-sm tabular-nums focus:outline-none focus:border-[#0A0A0A]" />
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#71717A]">시간</span>
+            </div>
+            <div class="relative">
+              <input id="subject-goal-mins" type="number" min="0" max="59" step="5" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-sm tabular-nums focus:outline-none focus:border-[#0A0A0A]" />
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#71717A]">분</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-[#52525B] mb-1.5">구분 컬러</label>
+          <div id="color-picker-grid" class="grid grid-cols-6 gap-2">
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" id="btn-delete-subject" onclick="deleteCurrentSubject()" class="hidden px-4 py-2.5 rounded-xl border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition">삭제</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-[#0A0A0A] text-white text-xs font-semibold hover:bg-[#27272A] transition">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- D-Day Edit Modal (User & Admin Per-User Support) -->
+  <div id="dday-modal" class="fixed inset-0 z-[65] hidden items-center justify-center bg-black/45 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-sm p-6 shadow-xl my-auto">
+      <div class="flex items-center justify-between mb-2">
+        <h3 id="dday-modal-title" class="text-base font-bold">D-Day 목표 설정</h3>
+        <button onclick="closeModal('dday-modal')" class="w-7 h-7 rounded-full hover:bg-[#F4F4F5] flex items-center justify-center text-[#71717A]">✕</button>
+      </div>
+      <p id="dday-modal-subtitle" class="text-xs text-[#71717A] mb-4 leading-snug">목표 이름과 날짜를 설정하거나 비울 수 있습니다.</p>
+      <form onsubmit="saveDday(event)" class="space-y-4">
+        <input type="hidden" id="dday-target-user-id" value="" />
+        <div>
+          <label class="block text-xs font-semibold text-[#52525B] mb-1.5">시험 / 목표 이름</label>
+          <input id="dday-title-input" type="text" maxlength="16" placeholder="예: 기말고사, 모의고사" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[#52525B] mb-1.5">목표 날짜</label>
+          <input id="dday-date-input" type="date" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-sm tabular-nums focus:outline-none focus:border-[#0A0A0A]" required />
+        </div>
+        <div class="flex gap-2">
+          <button type="button" id="btn-clear-dday" onclick="clearDday()" class="hidden px-3.5 py-2.5 rounded-xl border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition">
+            D-Day 해제
+          </button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-[#0A0A0A] text-white text-xs font-semibold hover:bg-[#27272A] transition">
+            적용하기
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- User / Friend Study Detail Modal -->
+  <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-sm p-6 shadow-xl my-auto">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold leading-snug" id="dm-title">상세 공부 현황</h3>
+        <button onclick="closeModal('detail-modal')" class="w-7 h-7 rounded-full hover:bg-[#F4F4F5] flex items-center justify-center text-[#71717A] shrink-0">✕</button>
+      </div>
+      <div id="dm-content" class="space-y-3 text-xs">
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Full User Inspection Modal -->
+  <div id="admin-inspect-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/55 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+      <div class="px-5 py-4 border-b border-[#E4E4E7] bg-[#FAFAFB] flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#0A0A0A] text-white text-[10px] font-bold shrink-0">ADMIN FULL VIEW</span>
+            <h3 id="admin-inspect-title" class="text-base font-bold text-[#0A0A0A] leading-snug">사용자 상세 기록</h3>
+          </div>
+          <p id="admin-inspect-subtitle" class="text-[11px] text-[#71717A] mt-0.5 leading-snug">아이디 · 계정코드 · 상태</p>
+        </div>
+        <button onclick="closeModal('admin-inspect-modal')" class="w-8 h-8 rounded-full hover:bg-[#E4E4E7]/60 flex items-center justify-center text-[#52525B] font-bold shrink-0">✕</button>
+      </div>
+
+      <div class="px-5 py-3 border-b border-[#E4E4E7] bg-white flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-semibold text-[#52525B] shrink-0">조회 날짜:</label>
+          <input id="admin-inspect-date" type="date" onchange="handleAdminInspectDateChange()" class="px-2.5 py-1.5 rounded-xl border border-[#E4E4E7] text-xs tabular-nums focus:outline-none focus:border-[#0A0A0A]" />
+        </div>
+        <div class="flex flex-wrap items-center gap-1 bg-[#F4F4F5] p-1 rounded-xl border border-[#E4E4E7] text-xs">
+          <button type="button" onclick="setAdminInspectTab('summary')" id="adm-subtab-summary" class="px-2.5 py-1 rounded-lg font-bold bg-white text-[#0A0A0A]">일별·월별·과목</button>
+          <button type="button" onclick="setAdminInspectTab('records')" id="adm-subtab-records" class="px-2.5 py-1 rounded-lg font-medium text-[#52525B]">타이머 기록/삭제</button>
+          <button type="button" onclick="setAdminInspectTab('planner')" id="adm-subtab-planner" class="px-2.5 py-1 rounded-lg font-medium text-[#52525B]">24시 타임테이블</button>
+          <button type="button" onclick="setAdminInspectTab('todos')" id="adm-subtab-todos" class="px-2.5 py-1 rounded-lg font-medium text-[#52525B]">투두리스트</button>
+        </div>
+      </div>
+
+      <div id="admin-inspect-body" class="p-5 overflow-y-auto space-y-4 text-xs flex-1">
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-[70] pointer-events-none transition-all duration-200 toast-enter max-w-[92vw]">
+    <div id="toast-msg" class="px-4 py-2.5 rounded-full bg-[#0A0A0A] text-white text-xs font-medium shadow-lg text-center leading-snug">
+      알림 메시지
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       SILENT AUTO-APPLIED URL (NEVER EXPOSED IN UI)
+       ========================================================================== */
+    const STORAGE_KEY_ACCOUNTS = 'ypt_minimal_accounts_db_v6';
+    const STORAGE_KEY_HIDDEN_URL = 'ypt_minimal_hidden_endpoint_v6';
+    const SESSION_KEY_UID = 'ypt_minimal_logged_uid_v6';
+
+    const _SILENT_ENDPOINT_PARTS = ['https://script.google.com', '/macros/s/', '', '/exec'];
+
+    function resolveAutoSyncUrl() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const paramUrl = params.get('url') || params.get('gasUrl') || params.get('syncUrl');
+        if (paramUrl && /^https?:\/\//i.test(paramUrl.trim())) {
+          const clean = paramUrl.trim();
+          localStorage.setItem(STORAGE_KEY_HIDDEN_URL, clean);
+          return clean;
+        }
+
+        const hash = window.location.hash || '';
+        const hashMatch = hash.match(/(?:url|gasUrl|syncUrl)=([^&]+)/i);
+        if (hashMatch && hashMatch[1]) {
+          const decoded = decodeURIComponent(hashMatch[1]).trim();
+          if (/^https?:\/\//i.test(decoded)) {
+            localStorage.setItem(STORAGE_KEY_HIDDEN_URL, decoded);
+            return decoded;
+          }
+        }
+
+        const saved = localStorage.getItem(STORAGE_KEY_HIDDEN_URL);
+        if (saved && /^https?:\/\//i.test(saved.trim())) {
+          return saved.trim();
+        }
+      } catch (e) {}
+
+      if (_SILENT_ENDPOINT_PARTS[2]) {
+        return `${_SILENT_ENDPOINT_PARTS[0]}${_SILENT_ENDPOINT_PARTS[1]}${_SILENT_ENDPOINT_PARTS[2]}${_SILENT_ENDPOINT_PARTS[3]}`;
+      }
+      return '';
+    }
+
+    function getGasUrl() {
+      const resolved = resolveAutoSyncUrl();
+      if (!resolved) return '';
+      return resolved.replace(/\?.*$/, '').trim();
+    }
+
+    function getGasGetAllUrl() {
+      const resolved = resolveAutoSyncUrl();
+      if (!resolved) return '';
+      if (resolved.includes('action=')) return resolved;
+      return `${resolved}${resolved.includes('?') ? '&' : '?'}action=getAll`;
+    }
+
+    function generateAccountCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let rand = '';
+      for (let i = 0; i < 6; i++) {
+        rand += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return `STD-${rand}`;
+    }
+
+    function formatDateKey(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function parseDateKey(key) {
+      const [y, m, d] = key.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function formatTimeHMS(dateObj) {
+      const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
+      const h = String(d.getHours()).padStart(2, '0');
+      const m = String(d.getMinutes()).padStart(2, '0');
+      const s = String(d.getSeconds()).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    const TODAY_OBJ = new Date();
+    const TODAY_KEY = formatDateKey(TODAY_OBJ);
+
+    const DEFAULT_SIX_SUBJECTS = [
+      { id: 'sub_1', name: '공통국어2', color: '#0A0A0A', goalSeconds: 0 },
+      { id: 'sub_2', name: '공통영어2', color: '#059669', goalSeconds: 0 },
+      { id: 'sub_3', name: '공통수학2', color: '#2563EB', goalSeconds: 0 },
+      { id: 'sub_4', name: '통합사회2', color: '#D97706', goalSeconds: 0 },
+      { id: 'sub_5', name: '통합과학2', color: '#7C3AED', goalSeconds: 0 },
+      { id: 'sub_6', name: '한국사2', color: '#DC2626', goalSeconds: 0 }
+    ];
+
+    function normalizeDday(rawDday) {
+      if (!rawDday || typeof rawDday !== 'object') return null;
+      if (!rawDday.targetDate || typeof rawDday.targetDate !== 'string') return null;
+      return {
+        title: (rawDday.title && String(rawDday.title).trim()) || '목표일',
+        targetDate: rawDday.targetDate.trim()
+      };
+    }
+
+    function createDefaultUserState(userId, password, nickname, isAdmin = false, fixedCode = null) {
+      const subjects = DEFAULT_SIX_SUBJECTS.map(s => ({ ...s }));
+      const subjectSeconds = {};
+      subjects.forEach(s => { subjectSeconds[s.id] = 0; });
+
+      const logs = {};
+      logs[TODAY_KEY] = {
+        subjectSeconds,
+        maxSessionSeconds: 0,
+        timeline: {},
+        todos: [],
+        sessionLogs: []
+      };
+
+      return {
+        userId,
+        password,
+        nickname,
+        isAdmin,
+        accountCode: fixedCode || (userId === 'admin' ? 'STD-ADMIN1' : generateAccountCode()),
+        statusMessage: '오늘도 흔들림 없이 집중하기',
+        dday: null,
+        subjects,
+        logs,
+        friendAccountCodes: [],
+        isStudying: false,
+        isPaused: false,
+        currentSubject: '대기중',
+        currentSessionStart: null,
+        todayDateKey: TODAY_KEY,
+        todayTotalSeconds: 0,
+        updatedAt: Date.now()
+      };
+    }
+
+    function loadLocalAccounts() {
+      let map = {};
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_ACCOUNTS);
+        if (raw) map = JSON.parse(raw);
+      } catch (e) {}
+
+      if (!map['admin']) {
+        map['admin'] = createDefaultUserState('admin', 'admin1213', '관리자', true, 'STD-ADMIN1');
+        saveLocalAccounts(map);
+      }
+      return map;
+    }
+
+    function saveLocalAccounts(map) {
+      try {
+        localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(map));
+      } catch (e) {}
+    }
+
+    async function fetchCloudAccounts() {
+      const endpoint = getGasGetAllUrl();
+      if (!endpoint) {
+        updateSyncBadgeUI('local');
+        return null;
+      }
+      try {
+        const sep = endpoint.includes('?') ? '&' : '?';
+        const res = await fetch(`${endpoint}${sep}t=${Date.now()}`, {
+          method: 'GET',
+          redirect: 'follow'
+        });
+        const json = await res.json();
+        if (json && json.status === 'ok' && json.accounts) {
+          const local = loadLocalAccounts();
+          const merged = { ...local };
+          Object.keys(json.accounts).forEach(uid => {
+            const remote = json.accounts[uid];
+            if (!merged[uid] || (remote.updatedAt || 0) >= (merged[uid].updatedAt || 0)) {
+              merged[uid] = remote;
+            }
+          });
+          if (!merged['admin']) {
+            merged['admin'] = createDefaultUserState('admin', 'admin1213', '관리자', true, 'STD-ADMIN1');
+          }
+          allAccountsMap = merged;
+          if (loggedInUserId && allAccountsMap[loggedInUserId] && !activeSubjectId) {
+            const base = createDefaultUserState(
+              allAccountsMap[loggedInUserId].userId,
+              allAccountsMap[loggedInUserId].password,
+              allAccountsMap[loggedInUserId].nickname,
+              allAccountsMap[loggedInUserId].isAdmin,
+              allAccountsMap[loggedInUserId].accountCode
+            );
+            appState = {
+              ...base,
+              ...allAccountsMap[loggedInUserId],
+              dday: normalizeDday(allAccountsMap[loggedInUserId].dday)
+            };
+          }
+          saveLocalAccounts(allAccountsMap);
+          updateSyncBadgeUI('ok');
+          return merged;
+        }
+      } catch (e) {
+        updateSyncBadgeUI('local');
+      }
+      return null;
+    }
+
+    async function pushAccountToCloud(accountObj) {
+      const url = getGasUrl();
+      if (!url || !accountObj) return;
+      try {
+        await fetch(url, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'upsertUser',
+            user: accountObj
+          })
+        });
+        updateSyncBadgeUI('ok');
+      } catch (e) {
+        updateSyncBadgeUI('local');
+      }
+    }
+
+    async function deleteAccountFromCloud(userId) {
+      const url = getGasUrl();
+      if (!url) return;
+      try {
+        await fetch(url, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'deleteUser',
+            userId
+          })
+        });
+      } catch (e) {}
+    }
+
+    function updateSyncBadgeUI(status) {
+      const dot = document.getElementById('login-sync-dot');
+      const txt = document.getElementById('login-sync-text');
+      const hDot = document.getElementById('header-sync-dot');
+
+      if (status === 'ok') {
+        dot.className = 'w-2 h-2 rounded-full bg-green-600';
+        txt.textContent = '실시간 동기화';
+        if (hDot) hDot.className = 'w-2 h-2 rounded-full bg-green-600';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-[#0A0A0A]';
+        txt.textContent = '자동 적용됨';
+        if (hDot) hDot.className = 'w-2 h-2 rounded-full bg-[#0A0A0A]';
+      }
+    }
+
+    /* ==========================================================================
+       APP STATE VARIABLES
+       ========================================================================== */
+    const SUBJECT_COLORS = [
+      '#0A0A0A', '#2563EB', '#059669', '#D97706', '#DC2626', '#7C3AED',
+      '#0891B2', '#DB2777', '#4F46E5', '#65A30D', '#EA580C', '#52525B'
+    ];
+
+    let allAccountsMap = loadLocalAccounts();
+    let loggedInUserId = null;
+    let isAdminUnlocked = false;
+    let appState = null;
+
+    let selectedDateKey = TODAY_KEY;
+    let calendarViewYear = TODAY_OBJ.getFullYear();
+    let calendarViewMonth = TODAY_OBJ.getMonth();
+    let activeTab = 'timer';
+    let todoFilter = 'all';
+    let groupFilter = 'all';
+    let groupPeriod = 'daily'; // 'daily' | 'weekly' | 'monthly'
+    let selectedBrushSubjectId = 'sub_1';
+    let selectedModalColor = SUBJECT_COLORS[0];
+
+    // Focus Session State
+    let activeSubjectId = null;
+    let isTimerPaused = false;
+    let sessionSeconds = 0;
+    let pauseElapsedSeconds = 0;
+    let pauseStartTimeObj = null;
+    let sessionPauses = [];
+    let sessionStartDateObj = null;
+    let timerInterval = null;
+    let isDimmed = false;
+
+    let adminInspectUserId = null;
+    let adminInspectDateKey = TODAY_KEY;
+    let adminInspectSubTab = 'summary';
+
+    let audioCtx = null;
+    let noiseNode = null;
+    let isWhiteNoiseOn = false;
+
+    function canDeleteTimerRecord() {
+      return Boolean(isAdminUnlocked || (appState && appState.isAdmin) || loggedInUserId === 'admin');
+    }
+
+    /* ==========================================================================
+       SECRET ADMIN TRIGGER: 5 CLICKS WITHIN 1 SECOND
+       ========================================================================== */
+    let logoClickTimestamps = [];
+
+    window.handleLogoSecretClick = function() {
+      const now = Date.now();
+      logoClickTimestamps.push(now);
+      logoClickTimestamps = logoClickTimestamps.filter(ts => now - ts <= 1000);
+
+      if (logoClickTimestamps.length >= 5) {
+        logoClickTimestamps = [];
+        document.getElementById('admin-gate-pw-input').value = '';
+        openModal('admin-gate-modal');
+        setTimeout(() => document.getElementById('admin-gate-pw-input').focus(), 50);
+      }
+    };
+
+    window.handleAdminGateSubmit = async function(e) {
+      e.preventDefault();
+      const pw = document.getElementById('admin-gate-pw-input').value;
+      const adminAcc = allAccountsMap['admin'];
+      const validPw = adminAcc ? adminAcc.password : 'admin1213';
+
+      if (pw !== validPw) {
+        showToast('관리자 비밀번호가 올바르지 않습니다.');
+        return;
+      }
+
+      closeModal('admin-gate-modal');
+      isAdminUnlocked = true;
+
+      if (!loggedInUserId) {
+        await loginAsUser('admin', validPw);
+      }
+
+      enableAdminNavUI();
+      if (getGasUrl()) {
+        await fetchCloudAccounts();
+      }
+      switchTab('admin');
+      showToast('관리자 모드가 활성화되었습니다.');
+    };
+
+    function enableAdminNavUI() {
+      const navGrid = document.getElementById('bottom-nav-grid');
+      const adminBtn = document.getElementById('nav-btn-admin');
+      navGrid.classList.remove('grid-cols-5');
+      navGrid.classList.add('grid-cols-6');
+      adminBtn.classList.remove('hidden');
+      adminBtn.classList.add('flex');
+    }
+
+    window.exitAdminMode = function() {
+      if (loggedInUserId !== 'admin') {
+        isAdminUnlocked = false;
+        const navGrid = document.getElementById('bottom-nav-grid');
+        const adminBtn = document.getElementById('nav-btn-admin');
+        navGrid.classList.remove('grid-cols-6');
+        navGrid.classList.add('grid-cols-5');
+        adminBtn.classList.add('hidden');
+        adminBtn.classList.remove('flex');
+      }
+      switchTab('timer');
+      showToast('일반 화면으로 전환되었습니다.');
+    };
+
+    /* ==========================================================================
+       LOGIN & LOGOUT
+       ========================================================================== */
+    window.handleLoginSubmit = async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('login-id-input').value.trim();
+      const pw = document.getElementById('login-pw-input').value;
+      await loginAsUser(id, pw);
+    };
+
+    async function loginAsUser(userId, password) {
+      const btn = document.getElementById('login-submit-btn');
+      btn.textContent = '확인 중...';
+
+      if (!allAccountsMap[userId] && getGasUrl()) {
+        await fetchCloudAccounts();
+      }
+
+      btn.textContent = '로그인';
+
+      const acc = allAccountsMap[userId];
+      if (!acc) {
+        showToast('존재하지 않는 아이디입니다. 관리자에게 계정 생성을 요청하세요.');
+        return;
+      }
+
+      if (acc.password !== password) {
+        showToast('비밀번호가 일치하지 않습니다.');
+        return;
+      }
+
+      loggedInUserId = userId;
+      const base = createDefaultUserState(acc.userId, acc.password, acc.nickname, acc.isAdmin, acc.accountCode);
+      appState = {
+        ...base,
+        ...acc,
+        dday: normalizeDday(acc.dday)
+      };
+      if (!appState.accountCode) {
+        appState.accountCode = generateAccountCode();
+      }
+      if (!Array.isArray(appState.subjects) || appState.subjects.length === 0) {
+        appState.subjects = DEFAULT_SIX_SUBJECTS.map(s => ({ ...s }));
+      }
+
+      try {
+        sessionStorage.setItem(SESSION_KEY_UID, loggedInUserId);
+      } catch (e) {}
+
+      await persistState();
+
+      document.getElementById('login-screen').classList.add('hidden');
+      const appEl = document.getElementById('app');
+      appEl.classList.remove('hidden');
+      appEl.classList.add('flex');
+
+      if (appState.isAdmin || loggedInUserId === 'admin') {
+        isAdminUnlocked = true;
+        enableAdminNavUI();
+      }
+
+      renderAll();
+      showToast(`${appState.nickname}님 환영합니다.`);
+    }
+
+    window.handleLogout = async function() {
+      if (activeSubjectId) {
+        await finishFocusSession();
+      }
+      loggedInUserId = null;
+      appState = null;
+      isAdminUnlocked = false;
+      try {
+        sessionStorage.removeItem(SESSION_KEY_UID);
+      } catch (e) {}
+
+      closeModal('profile-modal');
+      document.getElementById('app').classList.add('hidden');
+      document.getElementById('app').classList.remove('flex');
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('login-id-input').value = '';
+      document.getElementById('login-pw-input').value = '';
+      showToast('로그아웃되었습니다.');
+    };
+
+    async function persistState(pushRemote = true) {
+      if (!loggedInUserId || !appState) return;
+      const todayTotal = getDayTotalSeconds(TODAY_KEY);
+      const activeSub = activeSubjectId ? appState.subjects.find(s => s.id === activeSubjectId) : null;
+
+      appState.isStudying = Boolean(activeSubjectId && !isTimerPaused);
+      appState.isPaused = Boolean(activeSubjectId && isTimerPaused);
+      appState.currentSubject = activeSub
+        ? (isTimerPaused ? `${activeSub.name} (일시정지)` : activeSub.name)
+        : '대기중';
+      appState.currentSessionStart = sessionStartDateObj ? sessionStartDateObj.toISOString() : null;
+      appState.todayDateKey = TODAY_KEY;
+      appState.todayTotalSeconds = todayTotal;
+      appState.dday = normalizeDday(appState.dday);
+      appState.updatedAt = Date.now();
+
+      allAccountsMap[loggedInUserId] = appState;
+      saveLocalAccounts(allAccountsMap);
+
+      if (pushRemote && getGasUrl()) {
+        pushAccountToCloud(appState);
+      }
+    }
+
+    function ensureDayLog(dateKey, targetState = appState) {
+      if (!targetState) return { subjectSeconds: {}, maxSessionSeconds: 0, timeline: {}, todos: [], sessionLogs: [] };
+      if (!targetState.logs) targetState.logs = {};
+      if (!targetState.logs[dateKey]) {
+        targetState.logs[dateKey] = {
+          subjectSeconds: {},
+          maxSessionSeconds: 0,
+          timeline: {},
+          todos: [],
+          sessionLogs: []
+        };
+      }
+      if (!Array.isArray(targetState.logs[dateKey].sessionLogs)) {
+        targetState.logs[dateKey].sessionLogs = [];
+      }
+      if (!Array.isArray(targetState.logs[dateKey].todos)) {
+        targetState.logs[dateKey].todos = [];
+      }
+      if (!targetState.logs[dateKey].timeline) {
+        targetState.logs[dateKey].timeline = {};
+      }
+      if (!targetState.logs[dateKey].subjectSeconds) {
+        targetState.logs[dateKey].subjectSeconds = {};
+      }
+      return targetState.logs[dateKey];
+    }
+
+    /* ==========================================================================
+       PERIOD DATE HELPERS (일별 / 주일별 / 월별)
+       ========================================================================== */
+    function getWeekDateKeys(anchorDateKey) {
+      const d = parseDateKey(anchorDateKey);
+      const dayOfWeek = d.getDay(); // 0=일, 1=월, ..., 6=토
+      const sunday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dayOfWeek);
+      const keys = [];
+      for (let i = 0; i < 7; i++) {
+        const cur = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
+        keys.push(formatDateKey(cur));
+      }
+      return keys;
+    }
+
+    function getMonthDateKeys(anchorDateKey) {
+      const d = parseDateKey(anchorDateKey);
+      const y = d.getFullYear();
+      const m = d.getMonth();
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+      const keys = [];
+      for (let day = 1; day <= daysInMonth; day++) {
+        keys.push(formatDateKey(new Date(y, m, day)));
+      }
+      return keys;
+    }
+
+    function getPeriodDateKeys(period, anchorDateKey) {
+      if (period === 'weekly') return getWeekDateKeys(anchorDateKey);
+      if (period === 'monthly') return getMonthDateKeys(anchorDateKey);
+      return [anchorDateKey];
+    }
+
+    function getPeriodRangeLabel(period, anchorDateKey) {
+      if (period === 'weekly') {
+        const keys = getWeekDateKeys(anchorDateKey);
+        const startD = parseDateKey(keys[0]);
+        const endD = parseDateKey(keys[keys.length - 1]);
+        return `주일별 (${startD.getMonth() + 1}/${startD.getDate()} 일 ~ ${endD.getMonth() + 1}/${endD.getDate()} 토)`;
+      }
+      if (period === 'monthly') {
+        const d = parseDateKey(anchorDateKey);
+        return `월별 (${d.getFullYear()}년 ${d.getMonth() + 1}월 전체)`;
+      }
+      return `일별 (${formatKoreanDate(anchorDateKey)})`;
+    }
+
+    function computeUserPeriodSummary(userObj, period, anchorDateKey, liveExtraSec = 0) {
+      const dateKeys = getPeriodDateKeys(period, anchorDateKey);
+      const subs = userObj.subjects || [];
+      const sectorTotals = {};
+      subs.forEach(s => { sectorTotals[s.id] = 0; });
+
+      let totalSec = 0;
+      const logs = userObj.logs || {};
+
+      dateKeys.forEach(k => {
+        const dayLog = logs[k];
+        if (!dayLog || !dayLog.subjectSeconds) return;
+        Object.keys(dayLog.subjectSeconds).forEach(subId => {
+          const val = Number(dayLog.subjectSeconds[subId]) || 0;
+          totalSec += val;
+          if (Object.prototype.hasOwnProperty.call(sectorTotals, subId)) {
+            sectorTotals[subId] += val;
+          } else {
+            sectorTotals[subId] = val;
+          }
+        });
+      });
+
+      if (liveExtraSec > 0 && dateKeys.includes(TODAY_KEY)) {
+        totalSec += liveExtraSec;
+        const activeSubId = (userObj.userId === loggedInUserId) ? activeSubjectId : null;
+        if (activeSubId) {
+          sectorTotals[activeSubId] = (sectorTotals[activeSubId] || 0) + liveExtraSec;
+        }
+      }
+
+      const sectors = subs.map(s => ({
+        id: s.id,
+        name: s.name,
+        color: s.color || '#0A0A0A',
+        seconds: sectorTotals[s.id] || 0
+      }));
+
+      return { totalSec, sectors };
+    }
+
+    /* ==========================================================================
+       BACKGROUND SYNC & CHEERS
+       ========================================================================== */
+    window.manualSyncNow = async function() {
+      if (!getGasUrl()) {
+        renderAll();
+        showToast('로컬 상태가 갱신되었습니다.');
+        return;
+      }
+      showToast('최신 기록 동기화 중...');
+      if (appState) await pushAccountToCloud(appState);
+      await fetchCloudAccounts();
+      checkIncomingCheers();
+      renderAll();
+      showToast('최신 데이터 동기화 완료');
+    };
+
+    function checkIncomingCheers() {
+      if (!loggedInUserId || !allAccountsMap[loggedInUserId]) return;
+      const remoteSelf = allAccountsMap[loggedInUserId];
+      if (remoteSelf.latestCheer && (!window._lastCheerTs || remoteSelf.latestCheer.ts > window._lastCheerTs)) {
+        window._lastCheerTs = remoteSelf.latestCheer.ts;
+        const banner = document.getElementById('incoming-cheers-banner');
+        const txt = document.getElementById('incoming-cheer-text');
+        txt.textContent = `${remoteSelf.latestCheer.fromName}님이 "${remoteSelf.latestCheer.type === 'cheer' ? '👏 불꽃 응원' : '⏰ 공부 깨우기'}"를 보냈습니다!`;
+        banner.classList.remove('hidden');
+        showToast(txt.textContent);
+      }
+    }
+
+    setInterval(async () => {
+      if (!getGasUrl()) return;
+      await fetchCloudAccounts();
+      if (!loggedInUserId) return;
+      checkIncomingCheers();
+      if (activeTab === 'group') renderGroupTab();
+      if (activeTab === 'admin' && isAdminUnlocked) renderAdminTab();
+    }, 10000);
+
+    /* ==========================================================================
+       TIMER RECORD DETAIL MODAL (CLICK ANY SESSION RECORD)
+       ========================================================================== */
+    window.openSessionDetailModal = function(targetUserId, dateKey, sessionId) {
+      const targetUser = allAccountsMap[targetUserId] || appState;
+      if (!targetUser) return;
+      const dayLog = ensureDayLog(dateKey, targetUser);
+      const sl = (dayLog.sessionLogs || []).find(item => item.id === sessionId);
+      if (!sl) return;
+
+      const pauses = Array.isArray(sl.pauses) ? sl.pauses : [];
+      const totalPauseSec = pauses.reduce((acc, p) => acc + (p.durationSec || 0), 0);
+      const focusSec = sl.durationSec || 0;
+      const totalSpanSec = focusSec + totalPauseSec;
+
+      document.getElementById('sdm-dot').style.backgroundColor = sl.color || '#0A0A0A';
+      document.getElementById('sdm-title').textContent = `${sl.subjectName} · 타이머 상세 기록`;
+
+      const pausesHtml = pauses.length === 0
+        ? `<div class="p-3.5 rounded-2xl border border-dashed border-[#E4E4E7] text-[#71717A] text-center">이 세션에서는 일시정지가 없었습니다.</div>`
+        : pauses.map((p, idx) => `
+            <div class="p-3.5 rounded-2xl border border-[#E4E4E7] bg-[#FAFAFB] space-y-1.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="font-bold text-[#0A0A0A] tabular-nums">일시정지 #${idx + 1} · ${escapeHtml(p.startedAt || '--:--:--')} ~ ${escapeHtml(p.resumedAt || '--:--:--')}</span>
+                <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold tabular-nums">${formatHMS(p.durationSec || 0)}</span>
+              </div>
+              <div class="text-[#52525B] leading-relaxed">
+                <span class="font-semibold text-[#0A0A0A]">사유:</span> ${escapeHtml(p.reason && p.reason.trim() ? p.reason.trim() : '사유 없음')}
+              </div>
+            </div>
+          `).join('');
+
+      const allowDel = canDeleteTimerRecord();
+
+      document.getElementById('sdm-body').innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="p-3 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7]">
+            <div class="text-[11px] text-[#71717A]">순 집중 시간</div>
+            <div class="text-base font-bold tabular-nums text-[#0A0A0A] mt-0.5">${formatHMS(focusSec)}</div>
+          </div>
+          <div class="p-3 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7]">
+            <div class="text-[11px] text-[#71717A]">총 일시정지 시간</div>
+            <div class="text-base font-bold tabular-nums text-[#0A0A0A] mt-0.5">${formatHMS(totalPauseSec)}</div>
+          </div>
+          <div class="p-3 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7]">
+            <div class="text-[11px] text-[#71717A]">전체 경과 시간</div>
+            <div class="text-base font-bold tabular-nums text-[#0A0A0A] mt-0.5">${formatHMS(totalSpanSec)}</div>
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl border border-[#E4E4E7] bg-white space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-[#71717A]">기록 날짜</span>
+            <span class="font-bold tabular-nums text-[#0A0A0A]">${formatKoreanDate(dateKey)} (${escapeHtml(dateKey)})</span>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#F4F4F5]">
+            <span class="text-[#71717A]">세션 시작 / 종료 시각</span>
+            <span class="font-bold tabular-nums text-[#0A0A0A]">${escapeHtml(sl.startTime)} → ${escapeHtml(sl.endTime)}</span>
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#F4F4F5]">
+            <span class="text-[#71717A]">일시정지 횟수</span>
+            <span class="font-bold tabular-nums text-[#0A0A0A]">${pauses.length}회</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="text-xs font-bold text-[#0A0A0A] mb-2">일시정지 시간 및 사유 상세</div>
+          <div class="space-y-2 max-h-60 overflow-y-auto">
+            ${pausesHtml}
+          </div>
+        </div>
+
+        <div class="pt-2 flex flex-wrap items-center justify-end gap-2">
+          ${allowDel ? `
+            <button type="button" onclick="closeModal('session-detail-modal'); adminDeleteTimerRecord('${escapeHtml(targetUserId)}', '${escapeHtml(dateKey)}', '${escapeHtml(sl.id)}')" class="px-4 py-2 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition">
+              기록 삭제
+            </button>
+          ` : ''}
+          <button type="button" onclick="closeModal('session-detail-modal')" class="px-4 py-2 rounded-xl bg-[#0A0A0A] text-white text-xs font-bold hover:bg-[#27272A] transition">
+            닫기
+          </button>
+        </div>
+      `;
+
+      openModal('session-detail-modal');
+    };
+
+    /* ==========================================================================
+       ADMIN PANEL ACTIONS & FULL USER INSPECTION (ALREADY IMPLEMENTED)
+       ========================================================================== */
+    window.handleAdminCreateUser = async function(e) {
+      e.preventDefault();
+      if (!isAdminUnlocked) return;
+
+      const newId = document.getElementById('admin-new-id').value.trim();
+      const newPw = document.getElementById('admin-new-pw').value.trim();
+      const newNick = document.getElementById('admin-new-nick').value.trim();
+
+      if (!newId || !newPw || !newNick) return;
+      if (allAccountsMap[newId]) {
+        showToast('이미 존재하는 아이디입니다.');
+        return;
+      }
+
+      const newUserObj = createDefaultUserState(newId, newPw, newNick, false);
+      allAccountsMap[newId] = newUserObj;
+      saveLocalAccounts(allAccountsMap);
+
+      if (getGasUrl()) {
+        await pushAccountToCloud(newUserObj);
+      }
+
+      document.getElementById('admin-new-id').value = '';
+      document.getElementById('admin-new-pw').value = '';
+      document.getElementById('admin-new-nick').value = '';
+      renderAdminTab();
+      showToast(`계정 [${newId}] (${newNick}) 발급 완료 · 코드: ${newUserObj.accountCode}`);
+    };
+
+    window.deleteUserAccountByAdmin = async function(targetId) {
+      if (!isAdminUnlocked || targetId === 'admin') return;
+      delete allAccountsMap[targetId];
+      saveLocalAccounts(allAccountsMap);
+      if (getGasUrl()) {
+        await deleteAccountFromCloud(targetId);
+      }
+      renderAdminTab();
+      showToast(`사용자 [${targetId}] 계정이 삭제되었습니다.`);
+    };
+
+    window.adminDeleteTimerRecord = async function(targetUserId, dateKey, sessionId) {
+      if (!canDeleteTimerRecord()) {
+        showToast('타이머 기록 삭제는 관리자만 가능합니다.');
+        return;
+      }
+      const targetUser = allAccountsMap[targetUserId];
+      if (!targetUser) return;
+      const dayLog = ensureDayLog(dateKey, targetUser);
+      const beforeLen = dayLog.sessionLogs.length;
+      dayLog.sessionLogs = dayLog.sessionLogs.filter(s => s.id !== sessionId);
+      if (dayLog.sessionLogs.length === beforeLen) return;
+
+      targetUser.updatedAt = Date.now();
+      if (targetUserId === loggedInUserId) {
+        appState = targetUser;
+      }
+      saveLocalAccounts(allAccountsMap);
+      if (getGasUrl()) {
+        await pushAccountToCloud(targetUser);
+      }
+
+      if (adminInspectUserId === targetUserId) {
+        renderAdminInspectModalContent();
+      }
+      if (activeTab === 'admin') renderAdminTab();
+      if (activeTab === 'stats' && targetUserId === loggedInUserId) renderStatsTab();
+      showToast('선택한 타이머 기록이 삭제되었습니다.');
+    };
+
+    function formatDdayBadgeText(ddayObj) {
+      const norm = normalizeDday(ddayObj);
+      if (!norm) return null;
+      const target = parseDateKey(norm.targetDate);
+      if (isNaN(target.getTime())) return null;
+      const todayZero = new Date(TODAY_OBJ.getFullYear(), TODAY_OBJ.getMonth(), TODAY_OBJ.getDate());
+      const diffDays = Math.round((target - todayZero) / (1000 * 60 * 60 * 24));
+      if (diffDays > 0) return `D-${diffDays}`;
+      if (diffDays === 0) return 'D-DAY';
+      return `D+${Math.abs(diffDays)}`;
+    }
+
+    function renderAdminTab() {
+      const listEl = document.getElementById('admin-users-list');
+      listEl.innerHTML = '';
+
+      const users = Object.values(allAccountsMap).sort((a, b) => {
+        const aSec = a.todayDateKey === TODAY_KEY ? (a.todayTotalSeconds || 0) : 0;
+        const bSec = b.todayDateKey === TODAY_KEY ? (b.todayTotalSeconds || 0) : 0;
+        return bSec - aSec;
+      });
+
+      document.getElementById('admin-total-users-badge').textContent = `총 ${users.length}명`;
+
+      users.forEach(u => {
+        const isToday = u.todayDateKey === TODAY_KEY;
+        let liveSec = isToday ? (u.todayTotalSeconds || 0) : 0;
+        if (u.userId === loggedInUserId) {
+          liveSec = getDayTotalSeconds(TODAY_KEY);
+        } else if (isToday && u.isStudying && u.updatedAt) {
+          liveSec += Math.max(0, Math.min(3600, Math.floor((Date.now() - u.updatedAt) / 1000)));
+        }
+
+        const dayLog = (u.logs && u.logs[selectedDateKey]) ? u.logs[selectedDateKey] : { todos: [], sessionLogs: [] };
+        const todos = dayLog.todos || [];
+        const doneTodos = todos.filter(t => t.done).length;
+        const todoRate = todos.length > 0 ? Math.round((doneTodos / todos.length) * 100) : 0;
+        const recCount = (dayLog.sessionLogs || []).length;
+
+        const prefix = `${calendarViewYear}-${String(calendarViewMonth + 1).padStart(2, '0')}`;
+        let monthSec = 0;
+        if (u.logs) {
+          Object.keys(u.logs).forEach(k => {
+            if (k.startsWith(prefix)) {
+              const l = u.logs[k];
+              monthSec += Object.values(l.subjectSeconds || {}).reduce((acc, v) => acc + (v || 0), 0);
+            }
+          });
+        }
+
+        const normDday = normalizeDday(u.dday);
+        const ddayBadge = formatDdayBadgeText(normDday);
+        const ddaySummary = normDday
+          ? `${normDday.title} (${ddayBadge} · ${normDday.targetDate})`
+          : 'D-Day 미설정';
+
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-2xl border border-[#E4E4E7] bg-[#FAFAFB] space-y-3';
+
+        card.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="w-2 h-2 rounded-full shrink-0 ${isToday && u.isStudying ? 'bg-green-600 pulse-dot' : 'bg-[#A1A1AA]'}"></span>
+                <span class="font-bold text-sm text-[#0A0A0A]">${escapeHtml(u.nickname)}</span>
+                <span class="text-[11px] font-medium text-[#71717A] tabular-nums">(@${escapeHtml(u.userId)})</span>
+                <span class="px-1.5 py-0.5 rounded bg-white border border-[#E4E4E7] text-[10px] font-bold tabular-nums text-[#0A0A0A]">${escapeHtml(u.accountCode || '')}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${normDday ? 'bg-[#0A0A0A] text-white' : 'bg-[#F4F4F5] border border-[#E4E4E7] text-[#71717A]'}">${escapeHtml(ddaySummary)}</span>
+              </div>
+              <div class="text-[11px] text-[#52525B] mt-1.5 flex flex-wrap items-center gap-1.5 tabular-nums leading-relaxed">
+                <span>상태: <b>${isToday ? escapeHtml(u.currentSubject || '대기중') : '대기중'}</b></span>
+                <span>·</span>
+                <span>월간(${calendarViewMonth + 1}월): <b>${formatHMShort(monthSec)}</b></span>
+                <span>·</span>
+                <span>투두: <b>${doneTodos}/${todos.length} (${todoRate}%)</b></span>
+                <span>·</span>
+                <span>타이머 기록: <b>${recCount}건</b></span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 shrink-0">
+              <div class="text-left sm:text-right mr-1">
+                <div class="text-[10px] text-[#71717A]">오늘 공부 시간</div>
+                <div class="text-base font-bold tabular-nums text-[#0A0A0A]">${formatHMS(liveSec)}</div>
+              </div>
+              <button onclick="openDdayModal('${escapeHtml(u.userId)}')" class="px-3 py-1.5 rounded-xl border border-[#E4E4E7] bg-white hover:border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold transition">
+                D-Day 설정
+              </button>
+              <button onclick="openAdminFullUserModal('${escapeHtml(u.userId)}', 'records')" class="px-3 py-1.5 rounded-xl border border-[#E4E4E7] bg-white hover:border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold transition">
+                기록 관리/삭제
+              </button>
+              <button onclick="openAdminFullUserModal('${escapeHtml(u.userId)}', 'summary')" class="px-3 py-1.5 rounded-xl bg-[#0A0A0A] text-white hover:bg-[#27272A] text-[11px] font-bold transition">
+                전체 상세 보기
+              </button>
+              ${u.userId !== 'admin' ? `
+                <button onclick="deleteUserAccountByAdmin('${escapeHtml(u.userId)}')" class="px-2.5 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-[11px] font-semibold transition">
+                  삭제
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    window.openAdminFullUserModal = function(targetUserId, initialSubTab = 'summary') {
+      if (!isAdminUnlocked) return;
+      const u = allAccountsMap[targetUserId];
+      if (!u) return;
+
+      adminInspectUserId = targetUserId;
+      adminInspectDateKey = selectedDateKey || TODAY_KEY;
+
+      document.getElementById('admin-inspect-title').textContent = `${u.nickname}님 전체 학습 기록`;
+      document.getElementById('admin-inspect-subtitle').textContent = `아이디: @${u.userId} · 코드: ${u.accountCode || '-'} · 상태: ${u.currentSubject || '대기중'}`;
+      document.getElementById('admin-inspect-date').value = adminInspectDateKey;
+
+      setAdminInspectTab(initialSubTab);
+      openModal('admin-inspect-modal');
+    };
+
+    window.handleAdminInspectDateChange = function() {
+      const val = document.getElementById('admin-inspect-date').value;
+      if (val) adminInspectDateKey = val;
+      renderAdminInspectModalContent();
+    };
+
+    window.setAdminInspectTab = function(subTab) {
+      adminInspectSubTab = subTab;
+      ['summary', 'records', 'planner', 'todos'].forEach(t => {
+        const btn = document.getElementById(`adm-subtab-${t}`);
+        if (!btn) return;
+        if (t === subTab) {
+          btn.className = 'px-2.5 py-1 rounded-lg font-bold bg-white text-[#0A0A0A] shadow-2xs';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded-lg font-medium text-[#52525B]';
+        }
+      });
+      renderAdminInspectModalContent();
+    };
+
+    function renderSessionRecordsHtml(sessionLogs, dateKey, targetUserId, allowDelete) {
+      if (!sessionLogs || sessionLogs.length === 0) {
+        return `<div class="p-5 text-center border border-dashed border-[#E4E4E7] rounded-2xl text-[#71717A]">해당 날짜에 저장된 타이머 기록이 없습니다.</div>`;
+      }
+
+      return sessionLogs.map(sl => {
+        const pauses = Array.isArray(sl.pauses) ? sl.pauses : [];
+        const totalPauseSec = pauses.reduce((acc, p) => acc + (p.durationSec || 0), 0);
+        const pauseSummaryText = pauses.length > 0
+          ? `일시정지 ${pauses.length}회 (총 ${formatHMS(totalPauseSec)}) · 사유: ${pauses.map(p => (p.reason && p.reason.trim()) ? p.reason.trim() : '사유 없음').join(', ')}`
+          : '일시정지 없음';
+
+        return `
+          <div role="button" tabindex="0" onclick="openSessionDetailModal('${escapeHtml(targetUserId)}', '${escapeHtml(dateKey)}', '${escapeHtml(sl.id)}')" class="p-3.5 rounded-2xl border border-[#E4E4E7] hover:border-[#0A0A0A] bg-[#FAFAFB] hover:bg-white transition cursor-pointer">
+            <div class="flex flex-wrap items-center justify-between gap-2 tabular-nums">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${sl.color || '#0A0A0A'}"></span>
+                <span class="font-bold text-[#0A0A0A]">${escapeHtml(sl.subjectName)}</span>
+                <span class="text-[#52525B]">시작 ${escapeHtml(sl.startTime)} → 끝 ${escapeHtml(sl.endTime)}</span>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="font-bold text-[#0A0A0A]">${formatHMS(sl.durationSec || 0)}</span>
+                <span class="px-2 py-0.5 rounded-md bg-[#F4F4F5] border border-[#E4E4E7] text-[10px] font-bold text-[#0A0A0A]">상세</span>
+                ${allowDelete ? `
+                  <button type="button" onclick="event.stopPropagation(); adminDeleteTimerRecord('${escapeHtml(targetUserId)}', '${escapeHtml(dateKey)}', '${escapeHtml(sl.id)}')" class="px-2.5 py-1 rounded-lg border border-red-200 bg-white text-red-600 hover:bg-red-50 text-[11px] font-bold transition">
+                    삭제
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+            <div class="mt-1.5 text-[11px] text-[#52525B] leading-snug">
+              ${escapeHtml(pauseSummaryText)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAdminInspectModalContent() {
+      const u = allAccountsMap[adminInspectUserId];
+      if (!u) return;
+      const bodyEl = document.getElementById('admin-inspect-body');
+      const dayLog = ensureDayLog(adminInspectDateKey, u);
+      const subjects = u.subjects || [];
+
+      const dailySec = Object.values(dayLog.subjectSeconds || {}).reduce((acc, v) => acc + (v || 0), 0);
+      const dObj = parseDateKey(adminInspectDateKey);
+      const monthPrefix = `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, '0')}`;
+      let monthlySec = 0;
+      let totalAllSec = 0;
+
+      if (u.logs) {
+        Object.keys(u.logs).forEach(k => {
+          const l = u.logs[k];
+          const daySum = Object.values((l && l.subjectSeconds) || {}).reduce((acc, v) => acc + (v || 0), 0);
+          totalAllSec += daySum;
+          if (k.startsWith(monthPrefix)) {
+            monthlySec += daySum;
+          }
+        });
+      }
+
+      if (adminInspectSubTab === 'summary') {
+        const subRows = subjects.map(s => {
+          const sec = (dayLog.subjectSeconds && dayLog.subjectSeconds[s.id]) || 0;
+          const goal = s.goalSeconds || 0;
+          const hasGoal = goal > 0;
+          const pct = hasGoal ? Math.min(100, Math.round((sec / goal) * 100)) : 0;
+
+          return `
+            <div class="p-3 rounded-xl border border-[#E4E4E7] bg-white flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${s.color || '#0A0A0A'}"></span>
+                <span class="font-bold text-[#0A0A0A]">${escapeHtml(s.name)}</span>
+              </div>
+              <div class="tabular-nums font-bold text-[#0A0A0A]">
+                ${formatHMS(sec)}
+                ${hasGoal ? `<span class="text-[#71717A] font-medium ml-1">/ ${formatHMShort(goal)} (${pct}%)</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        bodyEl.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div class="p-3 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7]">
+              <div class="text-[11px] text-[#71717A]">일별 공부 시간 (${adminInspectDateKey})</div>
+              <div class="text-base font-bold tabular-nums text-[#0A0A0A] mt-0.5">${formatHMS(dailySec)}</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7]">
+              <div class="text-[11px] text-[#71717A]">월별 공부 시간 (${monthPrefix})</div>
+              <div class="text-base font-bold tabular-nums text-[#0A0A0A] mt-0.5">${formatHMS(monthlySec)}</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7]">
+              <div class="text-[11px] text-[#71717A]">전체 누적 공부 시간</div>
+              <div class="text-base font-bold tabular-nums text-[#0A0A0A] mt-0.5">${formatHMS(totalAllSec)}</div>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="text-xs font-bold text-[#0A0A0A] mb-2">과목(섹터)별 학습 시간</h4>
+            <div class="space-y-2">${subRows || '<div class="text-[#71717A]">등록된 과목 없음</div>'}</div>
+          </div>
+        `;
+      } else if (adminInspectSubTab === 'records') {
+        bodyEl.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
+            <span class="font-bold text-xs text-[#0A0A0A]">${adminInspectDateKey} 타이머 기록 (누르면 상세 보기)</span>
+            <span class="text-[11px] text-[#71717A]">관리자 삭제 가능</span>
+          </div>
+          <div class="space-y-2.5">
+            ${renderSessionRecordsHtml(dayLog.sessionLogs || [], adminInspectDateKey, u.userId, true)}
+          </div>
+        `;
+      } else if (adminInspectSubTab === 'planner') {
+        const timelineRows = Array.from({ length: 24 }, (_, h) => {
+          const hourStr = String(h).padStart(2, '0');
+          let hourFilledSlots = 0;
+          const slotCells = [];
+          for (let slot = 0; slot < 6; slot++) {
+            const cellKey = `${hourStr}_${slot}`;
+            const subId = dayLog.timeline && dayLog.timeline[cellKey];
+            const sub = subjects.find(s => s.id === subId);
+            if (sub) hourFilledSlots++;
+            slotCells.push(`
+              <div class="h-4 rounded-[3px] border border-[#E4E4E7]" style="${sub ? `background-color:${sub.color};border-color:${sub.color}` : 'background-color:#FFFFFF'}" title="${hourStr}:${slot}0 ${sub ? sub.name : '기록 없음'}"></div>
+            `);
+          }
+          const hourMinutes = hourFilledSlots * 10;
+          return `
+            <div class="grid grid-cols-[44px_repeat(6,1fr)_48px] gap-1 items-center tabular-nums">
+              <div class="text-[10px] font-bold text-[#52525B] text-center">${hourStr}:00</div>
+              ${slotCells.join('')}
+              <div class="text-[10px] font-semibold text-right ${hourMinutes > 0 ? 'text-[#0A0A0A]' : 'text-[#A1A1AA]'}">${hourMinutes}분</div>
+            </div>
+          `;
+        }).join('');
+
+        bodyEl.innerHTML = `
+          <div class="p-3.5 rounded-2xl bg-[#FAFAFB] border border-[#E4E4E7] overflow-x-auto">
+            <div class="min-w-[300px]">
+              <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
+                <span class="font-bold text-xs text-[#0A0A0A]">${adminInspectDateKey} 24시간 타임테이블 (00:00 ~ 23:50)</span>
+                <span class="text-[11px] text-[#71717A]">칸당 10분</span>
+              </div>
+              <div class="space-y-1">${timelineRows}</div>
+            </div>
+          </div>
+        `;
+      } else if (adminInspectSubTab === 'todos') {
+        const todos = dayLog.todos || [];
+        const doneCount = todos.filter(t => t.done).length;
+        const rate = todos.length > 0 ? Math.round((doneCount / todos.length) * 100) : 0;
+
+        const todoItemsHtml = todos.length === 0
+          ? `<div class="p-6 text-center border border-dashed border-[#E4E4E7] rounded-2xl text-[#71717A]">해당 날짜에 등록된 투두리스트가 없습니다.</div>`
+          : todos.map(t => {
+              const sub = subjects.find(s => s.id === t.subjectId) || { name: '기타', color: '#71717A' };
+              return `
+                <div class="p-3 rounded-xl border border-[#E4E4E7] bg-white flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold text-white shrink-0" style="background-color:${sub.color}">${escapeHtml(sub.name)}</span>
+                    <span class="${t.done ? 'line-through text-[#71717A]' : 'text-[#0A0A0A] font-medium'} leading-snug">${escapeHtml(t.text)}</span>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${t.done ? 'bg-[#0A0A0A] text-white' : 'bg-[#F4F4F5] text-[#52525B]'}">${t.done ? '완료' : '미완료'}</span>
+                </div>
+              `;
+            }).join('');
+
+        bodyEl.innerHTML = `
+          <div class="p-3.5 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7] flex flex-wrap items-center justify-between gap-2">
+            <span class="font-bold text-[#0A0A0A]">${adminInspectDateKey} 투두리스트 현황</span>
+            <span class="font-bold tabular-nums text-[#0A0A0A]">완료 ${doneCount} / ${todos.length} (${rate}%)</span>
+          </div>
+          <div class="space-y-2">${todoItemsHtml}</div>
+        `;
+      }
+    }
+
+    /* ==========================================================================
+       ACCOUNT CODE SHARING & FRIENDS
+       ========================================================================== */
+    window.copyAccountCode = function() {
+      if (!appState || !appState.accountCode) return;
+      const temp = document.createElement('textarea');
+      temp.value = appState.accountCode;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      showToast(`내 계정 고유 코드 [${appState.accountCode}]가 복사되었습니다.`);
+    };
+
+    window.handleAddFriendByAccountCode = async function(e) {
+      e.preventDefault();
+      const input = document.getElementById('friend-code-input');
+      let code = input.value.trim().toUpperCase();
+      if (!code) return;
+      if (!code.startsWith('STD-') && code.length === 6) {
+        code = 'STD-' + code;
+      }
+
+      if (code === (appState.accountCode || '').toUpperCase()) {
+        showToast('본인의 계정 코드는 추가할 수 없습니다.');
+        return;
+      }
+
+      if (getGasUrl()) {
+        await fetchCloudAccounts();
+      }
+
+      const matchedUser = Object.values(allAccountsMap).find(u => (u.accountCode || '').toUpperCase() === code);
+      if (!matchedUser) {
+        showToast('해당 계정 코드를 가진 사용자를 찾을 수 없습니다.');
+        return;
+      }
+
+      if (!appState.friendAccountCodes) appState.friendAccountCodes = [];
+      if (appState.friendAccountCodes.includes(code)) {
+        showToast('이미 친구로 등록된 계정입니다.');
+        return;
+      }
+
+      appState.friendAccountCodes.push(code);
+      input.value = '';
+      await persistState();
+      renderGroupTab();
+      showToast(`${matchedUser.nickname}님과 친구로 연결되었습니다!`);
+    };
+
+    window.cheerFriend = async function(targetUserId, targetName, isStudying) {
+      const target = allAccountsMap[targetUserId];
+      if (!target) return;
+
+      target.latestCheer = {
+        fromName: appState.nickname,
+        type: isStudying ? 'cheer' : 'wakeup',
+        ts: Date.now()
+      };
+      target.updatedAt = Date.now();
+      saveLocalAccounts(allAccountsMap);
+
+      if (getGasUrl()) {
+        await pushAccountToCloud(target);
+      }
+
+      showToast(isStudying
+        ? `${targetName}님에게 불꽃 응원을 보냈습니다!`
+        : `${targetName}님에게 공부 깨우기 알림을 보냈습니다!`);
+    };
+
+    window.dismissCheerBanner = function() {
+      document.getElementById('incoming-cheers-banner').classList.add('hidden');
+    };
+
+    window.openUserStudyDetail = function(targetUserId) {
+      const u = allAccountsMap[targetUserId];
+      if (!u) return;
+
+      const periodLabelMap = { daily: '일별', weekly: '주일별', monthly: '월별' };
+      const pTitle = periodLabelMap[groupPeriod] || '일별';
+      document.getElementById('dm-title').textContent = `${u.nickname}님의 ${pTitle} 공부 기록`;
+
+      const container = document.getElementById('dm-content');
+      const liveExtra = (u.userId !== loggedInUserId && u.todayDateKey === TODAY_KEY && u.isStudying && !u.isPaused && u.updatedAt)
+        ? Math.max(0, Math.min(3600, Math.floor((Date.now() - u.updatedAt) / 1000)))
+        : 0;
+
+      const summary = computeUserPeriodSummary(u, groupPeriod, selectedDateKey, liveExtra);
+      const subs = summary.sectors || [];
+
+      const rowsHtml = subs.length === 0
+        ? `<div class="py-4 text-center text-[#71717A]">등록된 과목이 없습니다.</div>`
+        : subs.map(s => {
+            const origSub = (u.subjects || []).find(item => item.id === s.id);
+            const goal = origSub ? (origSub.goalSeconds || 0) : 0;
+            const hasGoal = goal > 0;
+            const pct = hasGoal ? Math.min(100, Math.round((s.seconds / goal) * 100)) : 0;
+
+            return `
+              <div class="p-2.5 rounded-xl border border-[#E4E4E7]">
+                <div class="flex flex-wrap items-center justify-between gap-1">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${s.color || '#0A0A0A'}"></span>
+                    <span class="font-bold text-[#0A0A0A]">${escapeHtml(s.name)}</span>
+                  </div>
+                  <div class="tabular-nums font-bold text-[#0A0A0A]">
+                    ${formatHMS(s.seconds)}
+                    ${hasGoal ? `<span class="text-[#71717A] font-medium ml-1">/ ${formatHMShort(goal)} (${pct}%)</span>` : ''}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+      container.innerHTML = `
+        <div class="p-3.5 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7] flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div class="text-[11px] text-[#71717A]">${escapeHtml(getPeriodRangeLabel(groupPeriod, selectedDateKey))} · ${escapeHtml(u.accountCode || '')}</div>
+            <div class="text-2xl font-bold tabular-nums text-[#0A0A0A] mt-0.5">${formatHMS(summary.totalSec)}</div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${u.isStudying ? 'bg-[#0A0A0A] text-white' : 'bg-white border border-[#E4E4E7] text-[#52525B]'}">
+            ${escapeHtml(u.currentSubject || '대기중')}
+          </span>
+        </div>
+        <div class="space-y-2 max-h-64 overflow-y-auto pt-1">${rowsHtml}</div>
+      `;
+      openModal('detail-modal');
+    };
+
+    /* ==========================================================================
+       FORMATTING HELPERS
+       ========================================================================== */
+    function formatHMS(totalSec) {
+      const sec = Math.max(0, Math.floor(totalSec));
+      const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    function formatHMShort(totalSec) {
+      const sec = Math.max(0, Math.floor(totalSec));
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      if (h > 0 && m > 0) return `${h}시간 ${m}분`;
+      if (h > 0) return `${h}시간`;
+      return `${m}분`;
+    }
+
+    function formatKoreanDate(dateKey) {
+      const d = parseDateKey(dateKey);
+      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}.${m}.${day} (${days[d.getDay()]})`;
+    }
+
+    function getDayTotalSeconds(dateKey) {
+      const log = ensureDayLog(dateKey);
+      return Object.values(log.subjectSeconds || {}).reduce((acc, v) => acc + (v || 0), 0);
+    }
+
+    function getTotalConfiguredGoalSeconds() {
+      return (appState.subjects || []).reduce((acc, s) => acc + (s.goalSeconds || 0), 0);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toast-msg');
+      msgEl.textContent = message;
+      toast.classList.remove('toast-enter');
+      toast.classList.add('toast-active');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.remove('toast-active');
+        toast.classList.add('toast-enter');
+      }, 2400);
+    }
+
+    /* ==========================================================================
+       HEADER & DATE NAVIGATION
+       ========================================================================== */
+    function renderHeader() {
+      if (!appState) return;
+      const titleEl = document.getElementById('header-dday-title');
+      const badgeEl = document.getElementById('header-dday-badge');
+      const normDday = normalizeDday(appState.dday);
+      const badgeText = formatDdayBadgeText(normDday);
+
+      if (normDday && badgeText) {
+        titleEl.textContent = normDday.title;
+        badgeEl.textContent = badgeText;
+      } else {
+        titleEl.textContent = 'D-Day 미설정';
+        badgeEl.textContent = '+ 설정';
+      }
+
+      document.getElementById('header-date-label').textContent = formatKoreanDate(selectedDateKey);
+
+      const todayPill = document.getElementById('header-today-pill');
+      if (selectedDateKey === TODAY_KEY) {
+        todayPill.classList.remove('hidden');
+      } else {
+        todayPill.classList.add('hidden');
+      }
+
+      document.getElementById('header-user-name').textContent = appState.nickname;
+    }
+
+    window.changeDate = function(delta) {
+      const d = parseDateKey(selectedDateKey);
+      d.setDate(d.getDate() + delta);
+      selectedDateKey = formatDateKey(d);
+      calendarViewYear = d.getFullYear();
+      calendarViewMonth = d.getMonth();
+      renderAll();
+    };
+
+    window.goToday = function() {
+      selectedDateKey = TODAY_KEY;
+      calendarViewYear = TODAY_OBJ.getFullYear();
+      calendarViewMonth = TODAY_OBJ.getMonth();
+      renderAll();
+      showToast('오늘 날짜로 이동했습니다.');
+    };
+
+    /* ==========================================================================
+       TAB 1: TIMER VIEW
+       ========================================================================== */
+    function renderTimerTab() {
+      const log = ensureDayLog(selectedDateKey);
+      const totalSec = getDayTotalSeconds(selectedDateKey);
+      const totalGoalSec = getTotalConfiguredGoalSeconds();
+
+      document.getElementById('total-time-display').textContent = formatHMS(totalSec);
+      document.getElementById('hero-sub-metric-value').textContent = formatHMS(log.maxSessionSeconds || 0);
+      document.getElementById('user-status-preview').textContent = appState.statusMessage || '오늘도 흔들림 없이 집중하기';
+      document.getElementById('hero-account-code-btn').textContent = appState.accountCode || 'STD-000000';
+
+      const banner = document.getElementById('live-timer-banner');
+      const pauseElapsedSpan = document.getElementById('live-banner-pause-elapsed');
+      if (activeSubjectId) {
+        const activeSub = appState.subjects.find(s => s.id === activeSubjectId);
+        document.getElementById('live-banner-subject').textContent = activeSub ? activeSub.name : '과목';
+        document.getElementById('live-banner-elapsed').textContent = formatHMS(sessionSeconds);
+        document.getElementById('live-banner-mode-label').textContent = isTimerPaused ? 'PAUSED SESSION' : 'RUNNING SESSION';
+        document.getElementById('banner-pause-resume-btn').textContent = isTimerPaused ? '▶ 다시 시작' : '❚❚ 일시정지';
+        document.getElementById('live-banner-dot').className = isTimerPaused
+          ? 'w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0'
+          : 'w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot shrink-0';
+        if (isTimerPaused) {
+          pauseElapsedSpan.textContent = `(일시정지 ${formatHMS(pauseElapsedSeconds)})`;
+          pauseElapsedSpan.classList.remove('hidden');
+        } else {
+          pauseElapsedSpan.classList.add('hidden');
+        }
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+
+      const goalLabel = document.getElementById('goal-progress-label');
+      const goalBarWrap = document.getElementById('goal-progress-bar-wrap');
+      const goalBar = document.getElementById('goal-progress-bar');
+
+      if (totalGoalSec > 0) {
+        const pct = Math.min(100, Math.round((totalSec / totalGoalSec) * 100));
+        goalLabel.textContent = `과목 합산 목표 ${formatHMShort(totalGoalSec)} · ${pct}%`;
+        goalLabel.classList.remove('hidden');
+        goalBar.style.width = `${pct}%`;
+        goalBarWrap.classList.remove('hidden');
+      } else {
+        goalLabel.classList.add('hidden');
+        goalBarWrap.classList.add('hidden');
+      }
+
+      document.getElementById('subject-count-badge').textContent = appState.subjects.length;
+
+      const listEl = document.getElementById('subject-list');
+      listEl.innerHTML = '';
+
+      if (appState.subjects.length === 0) {
+        listEl.innerHTML = `
+          <div class="lg:col-span-2 py-12 text-center border border-dashed border-[#E4E4E7] rounded-2xl">
+            <p class="text-sm text-[#71717A]">등록된 과목이 없습니다.</p>
+            <button onclick="openSubjectModal()" class="mt-3 px-4 py-2 rounded-full bg-[#0A0A0A] text-white text-xs font-semibold">첫 과목 추가하기</button>
+          </div>
+        `;
+        return;
+      }
+
+      appState.subjects.forEach(sub => {
+        const subSec = log.subjectSeconds[sub.id] || 0;
+        const subGoal = sub.goalSeconds || 0;
+        const hasGoal = subGoal > 0;
+        const subPct = hasGoal ? Math.min(100, Math.round((subSec / subGoal) * 100)) : 0;
+        const isCurrentSession = activeSubjectId === sub.id;
+        const isCurrentlyRunning = isCurrentSession && !isTimerPaused;
+
+        const card = document.createElement('div');
+        card.className = `group flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 p-3.5 sm:p-4 rounded-2xl border transition ${
+          isCurrentSession ? 'border-[#0A0A0A] bg-[#FAFAFB] ring-1 ring-[#0A0A0A]' : 'border-[#E4E4E7] hover:border-[#0A0A0A] bg-white'
+        }`;
+
+        card.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            ${isCurrentlyRunning ? `
+              <button onclick="handlePauseOrResumeClick()" aria-label="${sub.name} 타이머 일시정지" title="일시정지" class="w-10 h-10 rounded-full flex items-center justify-center bg-[#0A0A0A] text-white shrink-0 hover:bg-[#27272A] active:scale-95 transition font-bold text-xs">
+                ❚❚
+              </button>
+            ` : `
+              <button onclick="startFocusSession('${sub.id}')" aria-label="${sub.name} 측정 시작" title="${isCurrentSession && isTimerPaused ? '다시 시작 (사유 입력)' : '측정 시작'}" class="w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 hover:scale-105 active:scale-95 transition" style="background-color: ${sub.color}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" class="ml-0.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              </button>
+            `}
+            <div class="min-w-0 flex-1 cursor-pointer" onclick="${isCurrentSession ? 'reopenFocusOverlay()' : `startFocusSession('${sub.id}')`}">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="font-bold text-sm sm:text-[15px] text-[#0A0A0A] leading-snug">${escapeHtml(sub.name)}</span>
+                ${isCurrentlyRunning ? `<span class="px-1.5 py-0.5 rounded bg-[#0A0A0A] text-white text-[9px] font-bold pulse-dot shrink-0">측정중</span>` : ''}
+                ${isCurrentSession && isTimerPaused ? `<span class="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-bold shrink-0">일시정지 ${formatHMS(pauseElapsedSeconds)}</span>` : ''}
+                ${hasGoal ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#F4F4F5] border border-[#E4E4E7] text-[#0A0A0A] tabular-nums shrink-0">${subPct}%</span>` : ''}
+              </div>
+              ${hasGoal ? `
+                <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                  <div class="w-24 h-1 bg-[#F4F4F5] rounded-full overflow-hidden">
+                    <div class="h-full rounded-full" style="width: ${subPct}%; background-color: ${sub.color}"></div>
+                  </div>
+                  <span class="text-[10px] text-[#71717A] tabular-nums">목표 ${formatHMShort(subGoal)}</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-1.5 shrink-0 ml-auto sm:ml-0">
+            <span class="font-bold text-sm sm:text-base tabular-nums ${subSec > 0 ? 'text-[#0A0A0A]' : 'text-[#71717A]'}">${formatHMS(subSec)}</span>
+            ${isCurrentSession ? `
+              <button onclick="handlePauseOrResumeClick()" class="px-2 py-1 rounded-lg bg-[#0A0A0A] text-white text-[10px] font-bold hover:bg-[#27272A] transition">${isTimerPaused ? '재개' : '일시정지'}</button>
+            ` : ''}
+            <button onclick="openSubjectModal('${sub.id}')" aria-label="과목 수정" class="w-8 h-8 rounded-full hover:bg-[#F4F4F5] flex items-center justify-center text-[#71717A] hover:text-[#0A0A0A] transition">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+            </button>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    /* ==========================================================================
+       TAB 2: MONTHLY CALENDAR
+       ========================================================================== */
+    function renderCalendarTab() {
+      document.getElementById('calendar-month-label').textContent = `${calendarViewYear}년 ${calendarViewMonth + 1}월`;
+
+      const gridEl = document.getElementById('calendar-grid');
+      gridEl.innerHTML = '';
+
+      const firstDayOfMonth = new Date(calendarViewYear, calendarViewMonth, 1);
+      const startWeekday = firstDayOfMonth.getDay();
+      const daysInMonth = new Date(calendarViewYear, calendarViewMonth + 1, 0).getDate();
+
+      for (let i = 0; i < startWeekday; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'h-14 sm:h-16 rounded-xl bg-[#FAFAFB]';
+        gridEl.appendChild(empty);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dObj = new Date(calendarViewYear, calendarViewMonth, day);
+        const key = formatDateKey(dObj);
+        const isSelected = key === selectedDateKey;
+        const isToday = key === TODAY_KEY;
+        const studiedSec = getDayTotalSeconds(key);
+
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.onclick = () => {
+          selectedDateKey = key;
+          renderAll();
+        };
+
+        let bgClass = 'bg-white border-[#E4E4E7] text-[#0A0A0A]';
+        let subText = '';
+
+        if (studiedSec > 0) {
+          const hrs = studiedSec / 3600;
+          if (hrs >= 6) bgClass = 'bg-[#0A0A0A] border-[#0A0A0A] text-white';
+          else if (hrs >= 3) bgClass = 'bg-[#52525B] border-[#52525B] text-white';
+          else bgClass = 'bg-[#E4E4E7] border-[#D4D4D8] text-[#0A0A0A]';
+          subText = `${hrs.toFixed(1)}h`;
+        }
+
+        const weekday = dObj.getDay();
+        const dayColor = (studiedSec >= 10800)
+          ? 'text-white'
+          : (weekday === 0 ? 'text-red-500' : (weekday === 6 ? 'text-blue-600' : ''));
+
+        cell.className = `h-14 sm:h-16 rounded-xl border p-1.5 flex flex-col items-center justify-between transition ${bgClass} ${
+          isSelected ? 'ring-2 ring-offset-1 ring-[#0A0A0A]' : 'hover:border-[#0A0A0A]'
+        }`;
+
+        cell.innerHTML = `
+          <div class="w-full flex items-center justify-between text-[11px] font-bold tabular-nums ${dayColor}">
+            <span>${day}</span>
+            ${isToday ? `<span class="w-1.5 h-1.5 rounded-full ${studiedSec >= 10800 ? 'bg-white' : 'bg-[#0A0A0A]'}"></span>` : ''}
+          </div>
+          <div class="text-[9px] sm:text-[10px] font-semibold tabular-nums w-full text-center opacity-90">
+            ${subText}
+          </div>
+        `;
+        gridEl.appendChild(cell);
+      }
+
+      renderCalendarInspector();
+    }
+
+    function renderCalendarInspector() {
+      const inspector = document.getElementById('calendar-inspector');
+      const log = ensureDayLog(selectedDateKey);
+      const studiedSec = getDayTotalSeconds(selectedDateKey);
+      const dateTitle = formatKoreanDate(selectedDateKey);
+
+      const rows = appState.subjects.map(s => {
+        const sec = log.subjectSeconds[s.id] || 0;
+        const sGoal = s.goalSeconds || 0;
+        const sHasGoal = sGoal > 0;
+        const sPct = sHasGoal ? Math.min(100, Math.round((sec / sGoal) * 100)) : 0;
+
+        return `
+          <div class="flex flex-wrap items-center justify-between gap-1 py-2 border-b border-[#F4F4F5] text-xs">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${s.color}"></span>
+              <span class="font-semibold text-[#0A0A0A]">${escapeHtml(s.name)}</span>
+            </div>
+            <div class="tabular-nums">
+              <span class="font-bold text-[#0A0A0A]">${formatHMS(sec)}</span>
+              ${sHasGoal ? `<span class="text-[#71717A] ml-1.5">(${sPct}%)</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      inspector.innerHTML = `
+        <div class="p-4 sm:p-5 rounded-2xl border border-[#E4E4E7] bg-[#FAFAFB]">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <span class="font-bold text-sm text-[#0A0A0A]">${dateTitle} 공부 기록</span>
+            <div class="flex items-center gap-2">
+              <button onclick="switchTab('planner')" class="text-xs font-semibold underline underline-offset-2 text-[#52525B] hover:text-[#0A0A0A]">플래너</button>
+              <button onclick="switchTab('timer')" class="px-3 py-1 rounded-full bg-[#0A0A0A] text-white text-xs font-semibold">타이머 보기</button>
+            </div>
+          </div>
+
+          <div class="my-3">
+            <div class="text-[11px] text-[#71717A]">총 공부 시간</div>
+            <div class="text-2xl sm:text-3xl font-bold tabular-nums text-[#0A0A0A] mt-0.5">${formatHMS(studiedSec)}</div>
+          </div>
+
+          <div class="mt-3 bg-white rounded-xl p-3 border border-[#E4E4E7]">
+            ${rows}
+          </div>
+        </div>
+      `;
+    }
+
+    window.changeCalendarMonth = function(delta) {
+      calendarViewMonth += delta;
+      if (calendarViewMonth < 0) {
+        calendarViewMonth = 11;
+        calendarViewYear -= 1;
+      } else if (calendarViewMonth > 11) {
+        calendarViewMonth = 0;
+        calendarViewYear += 1;
+      }
+      renderCalendarTab();
+    };
+
+    /* ==========================================================================
+       FOCUS TIMER: START, PAUSE, RESUME WITH OPTIONAL REASON & FINISH
+       ========================================================================== */
+    function runTickLoop() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!activeSubjectId) return;
+
+        if (isTimerPaused) {
+          pauseElapsedSeconds++;
+        } else {
+          sessionSeconds++;
+          const log = ensureDayLog(selectedDateKey);
+          log.subjectSeconds[activeSubjectId] = (log.subjectSeconds[activeSubjectId] || 0) + 1;
+          if (sessionSeconds > (log.maxSessionSeconds || 0)) {
+            log.maxSessionSeconds = sessionSeconds;
+          }
+
+          const now = new Date();
+          const hourStr = String(now.getHours()).padStart(2, '0');
+          const slotIdx = Math.floor(now.getMinutes() / 10);
+          log.timeline[`${hourStr}_${slotIdx}`] = activeSubjectId;
+        }
+
+        persistState(sessionSeconds % 15 === 0);
+        updateFocusOverlayUI();
+        if (activeTab === 'timer') {
+          const el = document.getElementById('live-banner-elapsed');
+          if (el) el.textContent = formatHMS(sessionSeconds);
+          const pEl = document.getElementById('live-banner-pause-elapsed');
+          if (pEl && isTimerPaused) {
+            pEl.textContent = `(일시정지 ${formatHMS(pauseElapsedSeconds)})`;
+          }
+        }
+      }, 1000);
+    }
+
+    window.startFocusSession = function(subjectId) {
+      const sub = appState.subjects.find(s => s.id === subjectId);
+      if (!sub) return;
+
+      if (activeSubjectId === subjectId && isTimerPaused) {
+        openResumeReasonModal();
+        return;
+      }
+
+      if (activeSubjectId && activeSubjectId !== subjectId) {
+        finishFocusSession();
+      }
+
+      activeSubjectId = subjectId;
+      isTimerPaused = false;
+      sessionSeconds = 0;
+      pauseElapsedSeconds = 0;
+      pauseStartTimeObj = null;
+      sessionPauses = [];
+      sessionStartDateObj = new Date();
+
+      const overlay = document.getElementById('focus-overlay');
+      document.getElementById('focus-subject-name').textContent = sub.name;
+      document.getElementById('focus-subject-dot').style.backgroundColor = sub.color;
+      document.getElementById('focus-start-badge').textContent = `시작 ${formatTimeHMS(sessionStartDateObj)}`;
+      updateFocusOverlayUI();
+
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+
+      persistState(true);
+      renderTimerTab();
+      runTickLoop();
+    };
+
+    window.handlePauseOrResumeClick = async function() {
+      if (!activeSubjectId) return;
+      if (!isTimerPaused) {
+        isTimerPaused = true;
+        pauseElapsedSeconds = 0;
+        pauseStartTimeObj = new Date();
+        updateFocusOverlayUI();
+        await persistState(true);
+        renderTimerTab();
+        showToast('타이머가 일시정지되었습니다. 다시 시작할 때 사유를 적을 수 있습니다.');
+      } else {
+        openResumeReasonModal();
+      }
+    };
+
+    function openResumeReasonModal() {
+      document.getElementById('resume-modal-pause-duration').textContent = formatHMS(pauseElapsedSeconds);
+      document.getElementById('pause-reason-input').value = '';
+      openModal('pause-reason-modal');
+      setTimeout(() => document.getElementById('pause-reason-input').focus(), 50);
+    }
+
+    window.cancelResumeModal = function() {
+      closeModal('pause-reason-modal');
+    };
+
+    window.confirmResumeWithReason = function(e) {
+      e.preventDefault();
+      const rawReason = document.getElementById('pause-reason-input').value.trim();
+      finalizeResume(rawReason || '사유 없음');
+    };
+
+    window.confirmResumeWithoutReason = function() {
+      finalizeResume('사유 없음');
+    };
+
+    async function finalizeResume(reasonText) {
+      closeModal('pause-reason-modal');
+      const resumedAtObj = new Date();
+      sessionPauses.push({
+        durationSec: pauseElapsedSeconds,
+        startedAt: pauseStartTimeObj ? formatTimeHMS(pauseStartTimeObj) : formatTimeHMS(resumedAtObj),
+        resumedAt: formatTimeHMS(resumedAtObj),
+        reason: reasonText || '사유 없음'
+      });
+
+      pauseElapsedSeconds = 0;
+      pauseStartTimeObj = null;
+      isTimerPaused = false;
+
+      updateFocusOverlayUI();
+      await persistState(true);
+      renderTimerTab();
+      showToast(`다시 시작합니다. (일시정지 사유: ${reasonText || '사유 없음'})`);
+    }
+
+    window.reopenFocusOverlay = function() {
+      if (!activeSubjectId) return;
+      const sub = appState.subjects.find(s => s.id === activeSubjectId);
+      const overlay = document.getElementById('focus-overlay');
+      if (sub) {
+        document.getElementById('focus-subject-name').textContent = sub.name;
+        document.getElementById('focus-subject-dot').style.backgroundColor = sub.color;
+      }
+      if (sessionStartDateObj) {
+        document.getElementById('focus-start-badge').textContent = `시작 ${formatTimeHMS(sessionStartDateObj)}`;
+      }
+      updateFocusOverlayUI();
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    };
+
+    function updateFocusOverlayUI() {
+      if (!activeSubjectId) return;
+      const log = ensureDayLog(selectedDateKey);
+      const sub = appState.subjects.find(s => s.id === activeSubjectId);
+      const subTotal = log.subjectSeconds[activeSubjectId] || 0;
+      const dayTotal = getDayTotalSeconds(selectedDateKey);
+      const subGoal = sub ? (sub.goalSeconds || 0) : 0;
+
+      document.getElementById('focus-session-timer').textContent = formatHMS(sessionSeconds);
+      document.getElementById('focus-subject-total').textContent = formatHMS(subTotal);
+      document.getElementById('focus-day-total').textContent = formatHMS(dayTotal);
+
+      const badgeEl = document.getElementById('focus-state-badge');
+      const labelEl = document.getElementById('focus-session-label');
+      const pauseIcon = document.getElementById('focus-pause-icon');
+      const pauseText = document.getElementById('focus-pause-text');
+      const pauseBox = document.getElementById('focus-pause-elapsed-box');
+      const pauseTimerEl = document.getElementById('focus-pause-elapsed-timer');
+
+      if (isTimerPaused) {
+        badgeEl.textContent = '일시정지';
+        labelEl.textContent = 'PAUSED SESSION';
+        pauseIcon.textContent = '▶';
+        pauseText.textContent = '다시 시작';
+        pauseTimerEl.textContent = formatHMS(pauseElapsedSeconds);
+        pauseBox.classList.remove('hidden');
+        pauseBox.classList.add('inline-flex');
+      } else {
+        badgeEl.textContent = '측정중';
+        labelEl.textContent = 'CURRENT SESSION';
+        pauseIcon.textContent = '❚❚';
+        pauseText.textContent = '타이머 일시정지';
+        pauseBox.classList.add('hidden');
+        pauseBox.classList.remove('inline-flex');
+      }
+
+      const goalWrap = document.getElementById('focus-subject-goal-wrap');
+      if (subGoal > 0) {
+        const pct = Math.min(100, Math.round((subTotal / subGoal) * 100));
+        document.getElementById('focus-subject-goal-pct').textContent = `${pct}%`;
+        goalWrap.classList.remove('hidden');
+        goalWrap.classList.add('flex');
+      } else {
+        goalWrap.classList.add('hidden');
+        goalWrap.classList.remove('flex');
+      }
+
+      const now = new Date();
+      const h = now.getHours();
+      const ampm = h >= 12 ? '오후' : '오전';
+      const h12 = String(h % 12 || 12).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('focus-realtime-clock').textContent = `${ampm} ${h12}:${m}`;
+    }
+
+    window.finishFocusSession = async function() {
+      closeModal('pause-reason-modal');
+      clearInterval(timerInterval);
+      timerInterval = null;
+
+      if (isWhiteNoiseOn) toggleWhiteNoise();
+      if (isDimmed) toggleDimMode();
+
+      const recordedSec = sessionSeconds;
+      const recordedHMS = formatHMS(recordedSec);
+      const sub = appState.subjects.find(s => s.id === activeSubjectId);
+      const endDateObj = new Date();
+      const startStr = sessionStartDateObj ? formatTimeHMS(sessionStartDateObj) : formatTimeHMS(endDateObj);
+      const endStr = formatTimeHMS(endDateObj);
+
+      const finalPauses = [...sessionPauses];
+      if (isTimerPaused && pauseElapsedSeconds > 0) {
+        finalPauses.push({
+          durationSec: pauseElapsedSeconds,
+          startedAt: pauseStartTimeObj ? formatTimeHMS(pauseStartTimeObj) : endStr,
+          resumedAt: endStr,
+          reason: '사유 없음'
+        });
+      }
+
+      if (sub && (recordedSec > 0 || finalPauses.length > 0)) {
+        const log = ensureDayLog(selectedDateKey);
+        log.sessionLogs.unshift({
+          id: 'sess_' + Date.now(),
+          subjectId: sub.id,
+          subjectName: sub.name,
+          color: sub.color,
+          startTime: startStr,
+          endTime: endStr,
+          durationSec: recordedSec,
+          pauses: finalPauses
+        });
+      }
+
+      activeSubjectId = null;
+      isTimerPaused = false;
+      sessionSeconds = 0;
+      pauseElapsedSeconds = 0;
+      pauseStartTimeObj = null;
+      sessionPauses = [];
+      sessionStartDateObj = null;
+
+      const overlay = document.getElementById('focus-overlay');
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+
+      await persistState(true);
+      renderAll();
+      showToast(`세션 종료 · ${sub ? sub.name : '과목'} (${recordedHMS}) 기록 완료`);
+    };
+
+    window.toggleDimMode = function() {
+      isDimmed = !isDimmed;
+      const overlay = document.getElementById('focus-overlay');
+      const label = document.getElementById('dim-label');
+      if (isDimmed) {
+        overlay.style.backgroundColor = '#000000';
+        overlay.classList.add('opacity-60');
+        label.textContent = '절전 화면 ON';
+      } else {
+        overlay.style.backgroundColor = '#0A0A0A';
+        overlay.classList.remove('opacity-60');
+        label.textContent = '절전 화면 OFF';
+      }
+    };
+
+    window.toggleWhiteNoise = function() {
+      const label = document.getElementById('whitenoise-label');
+      const btn = document.getElementById('btn-whitenoise');
+
+      if (!isWhiteNoiseOn) {
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (!audioCtx) audioCtx = new AudioContext();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+
+          const bufferSize = 2 * audioCtx.sampleRate;
+          const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          let lastOut = 0.0;
+          for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            output[i] = (lastOut + (0.02 * white)) / 1.02;
+            lastOut = output[i];
+            output[i] *= 1.8;
+          }
+
+          noiseNode = audioCtx.createBufferSource();
+          noiseNode.buffer = noiseBuffer;
+          noiseNode.loop = true;
+
+          const gainNode = audioCtx.createGain();
+          gainNode.gain.value = 0.18;
+
+          noiseNode.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+          noiseNode.start(0);
+
+          isWhiteNoiseOn = true;
+          label.textContent = '백색소음 ON';
+          btn.classList.add('bg-white/25', 'border-white/40');
+        } catch (e) {
+          showToast('오디오 재생을 지원하지 않는 환경입니다.');
+        }
+      } else {
+        if (noiseNode) {
+          try { noiseNode.stop(); noiseNode.disconnect(); } catch (e) {}
+          noiseNode = null;
+        }
+        isWhiteNoiseOn = false;
+        label.textContent = '백색소음 OFF';
+        btn.classList.remove('bg-white/25', 'border-white/40');
+      }
+    };
+
+    /* ==========================================================================
+       TAB 3: PLANNER & FULL 24-HOUR TIMETABLE (00시 ~ 23시)
+       ========================================================================== */
+    function renderPlannerTab() {
+      const log = ensureDayLog(selectedDateKey);
+      document.getElementById('planner-header-title').textContent = `${formatKoreanDate(selectedDateKey)} 24시간 타임테이블 & 플래너`;
+
+      if (!appState.subjects.some(s => s.id === selectedBrushSubjectId)) {
+        selectedBrushSubjectId = appState.subjects[0]?.id || null;
+      }
+
+      const brushListEl = document.getElementById('timeline-brush-list');
+      brushListEl.innerHTML = '';
+      appState.subjects.forEach(sub => {
+        const isSelected = sub.id === selectedBrushSubjectId;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => {
+          selectedBrushSubjectId = sub.id;
+          renderPlannerTab();
+        };
+        btn.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium shrink-0 border transition ${
+          isSelected ? 'border-[#0A0A0A] bg-[#0A0A0A] text-white' : 'border-[#E4E4E7] bg-white text-[#52525B]'
+        }`;
+        btn.innerHTML = `
+          <span class="w-2 h-2 rounded-full ${isSelected ? 'ring-1 ring-white' : ''}" style="background-color: ${sub.color}"></span>
+          <span>${escapeHtml(sub.name)}</span>
+        `;
+        brushListEl.appendChild(btn);
+      });
+
+      const gridEl = document.getElementById('timeline-grid');
+      gridEl.innerHTML = '';
+
+      for (let h = 0; h < 24; h++) {
+        const hourStr = String(h).padStart(2, '0');
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-[44px_repeat(6,1fr)_42px] gap-[3px] items-center';
+
+        const label = document.createElement('div');
+        label.className = 'text-[10px] font-bold text-[#52525B] text-center tabular-nums';
+        label.textContent = `${hourStr}:00`;
+        row.appendChild(label);
+
+        let filledCount = 0;
+        for (let slot = 0; slot < 6; slot++) {
+          const cellKey = `${hourStr}_${slot}`;
+          const assignedSubId = log.timeline[cellKey];
+          const assignedSub = appState.subjects.find(s => s.id === assignedSubId);
+          if (assignedSub) filledCount++;
+
+          const cell = document.createElement('button');
+          cell.type = 'button';
+          cell.title = `${hourStr}:${slot}0 ~ ${hourStr}:${slot}9 ${assignedSub ? `(${assignedSub.name})` : ''}`;
+          cell.className = 'timeline-cell h-4 rounded-[3px] border border-[#E4E4E7] bg-white cursor-pointer';
+          if (assignedSub) {
+            cell.style.backgroundColor = assignedSub.color;
+            cell.style.borderColor = assignedSub.color;
+          }
+          cell.onclick = () => toggleTimelineSlot(cellKey);
+          row.appendChild(cell);
+        }
+
+        const totalMinLabel = document.createElement('div');
+        const mins = filledCount * 10;
+        totalMinLabel.className = `text-[10px] font-semibold text-right tabular-nums ${mins > 0 ? 'text-[#0A0A0A]' : 'text-[#A1A1AA]'}`;
+        totalMinLabel.textContent = `${mins}m`;
+        row.appendChild(totalMinLabel);
+
+        gridEl.appendChild(row);
+      }
+
+      const selectEl = document.getElementById('todo-subject-select');
+      selectEl.innerHTML = '';
+      appState.subjects.forEach(sub => {
+        const opt = document.createElement('option');
+        opt.value = sub.id;
+        opt.textContent = sub.name;
+        selectEl.appendChild(opt);
+      });
+
+      const todos = log.todos || [];
+      const doneCount = todos.filter(t => t.done).length;
+      const compRate = todos.length > 0 ? Math.round((doneCount / todos.length) * 100) : 0;
+      document.getElementById('planner-completion-rate').textContent = `${compRate}%`;
+
+      ['all', 'active', 'done'].forEach(f => {
+        const btn = document.getElementById(`filter-${f}`);
+        if (f === todoFilter) {
+          btn.className = 'px-2 py-0.5 rounded-md font-semibold bg-white text-[#0A0A0A] shadow-2xs';
+        } else {
+          btn.className = 'px-2 py-0.5 rounded-md font-medium text-[#52525B]';
+        }
+      });
+
+      const todoListEl = document.getElementById('todo-list');
+      todoListEl.innerHTML = '';
+
+      const filteredTodos = todos.filter(t => {
+        if (todoFilter === 'active') return !t.done;
+        if (todoFilter === 'done') return t.done;
+        return true;
+      });
+
+      if (filteredTodos.length === 0) {
+        todoListEl.innerHTML = `
+          <div class="py-10 text-center text-xs text-[#71717A] border border-dashed border-[#E4E4E7] rounded-2xl">
+            표시할 할 일이 없습니다. 위 입력창에서 추가해보세요.
+          </div>
+        `;
+        return;
+      }
+
+      filteredTodos.forEach(todo => {
+        const sub = appState.subjects.find(s => s.id === todo.subjectId) || { name: '기타', color: '#71717A' };
+        const item = document.createElement('div');
+        item.className = `flex items-center justify-between gap-2.5 p-3 rounded-xl border transition ${
+          todo.done ? 'bg-[#FAFAFB] border-[#F4F4F5]' : 'bg-white border-[#E4E4E7]'
+        }`;
+
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer" onclick="toggleTodo('${todo.id}')">
+            <div class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition ${
+              todo.done ? 'bg-[#0A0A0A] border-[#0A0A0A] text-white' : 'border-[#D4D4D8] bg-white'
+            }">
+              ${todo.done ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+            </div>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold text-white shrink-0" style="background-color: ${sub.color}">${escapeHtml(sub.name)}</span>
+            <span class="text-xs sm:text-[13px] leading-snug ${todo.done ? 'line-through text-[#71717A]' : 'text-[#0A0A0A] font-medium'}">${escapeHtml(todo.text)}</span>
+          </div>
+          <button onclick="deleteTodo('${todo.id}')" aria-label="할 일 삭제" class="text-[#71717A] hover:text-red-600 p-1 text-xs transition shrink-0">✕</button>
+        `;
+        todoListEl.appendChild(item);
+      });
+    }
+
+    window.toggleTimelineSlot = async function(cellKey) {
+      if (!selectedBrushSubjectId) {
+        showToast('먼저 과목을 추가해주세요.');
+        return;
+      }
+      const log = ensureDayLog(selectedDateKey);
+      if (log.timeline[cellKey] === selectedBrushSubjectId) {
+        delete log.timeline[cellKey];
+      } else {
+        log.timeline[cellKey] = selectedBrushSubjectId;
+      }
+      await persistState(true);
+      renderPlannerTab();
+    };
+
+    window.handleAddTodo = async function(e) {
+      e.preventDefault();
+      const input = document.getElementById('todo-input');
+      const subjectId = document.getElementById('todo-subject-select').value;
+      const text = input.value.trim();
+      if (!text) return;
+
+      const log = ensureDayLog(selectedDateKey);
+      log.todos.unshift({
+        id: 'todo_' + Date.now(),
+        subjectId,
+        text,
+        done: false
+      });
+      input.value = '';
+      await persistState(true);
+      renderPlannerTab();
+    };
+
+    window.toggleTodo = async function(todoId) {
+      const log = ensureDayLog(selectedDateKey);
+      const t = log.todos.find(item => item.id === todoId);
+      if (t) {
+        t.done = !t.done;
+        await persistState(true);
+        renderPlannerTab();
+      }
+    };
+
+    window.deleteTodo = async function(todoId) {
+      const log = ensureDayLog(selectedDateKey);
+      log.todos = log.todos.filter(item => item.id !== todoId);
+      await persistState(true);
+      renderPlannerTab();
+    };
+
+    window.setTodoFilter = function(f) {
+      todoFilter = f;
+      renderPlannerTab();
+    };
+
+    /* ==========================================================================
+       TAB 4: STATISTICS (CLICK RECORD FOR FULL DETAIL; DELETE ADMIN-ONLY)
+       ========================================================================== */
+    function renderStatsTab() {
+      const dayTotal = getDayTotalSeconds(selectedDateKey);
+      document.getElementById('stat-day-total').textContent = formatHMS(dayTotal);
+
+      const baseDate = parseDateKey(selectedDateKey);
+      const weekData = [];
+      let weekSum = 0;
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(baseDate);
+        d.setDate(d.getDate() - i);
+        const k = formatDateKey(d);
+        const sec = getDayTotalSeconds(k);
+        weekSum += sec;
+        weekData.push({
+          key: k,
+          label: `${d.getMonth() + 1}/${d.getDate()}`,
+          seconds: sec
+        });
+      }
+
+      const weekAvg = Math.floor(weekSum / 7);
+      document.getElementById('stat-week-avg').textContent = formatHMS(weekAvg);
+
+      const wkH = Math.floor(weekSum / 3600);
+      const wkM = Math.floor((weekSum % 3600) / 60);
+      document.getElementById('stat-week-total').textContent = `주간 합계 ${wkH}시간 ${wkM}분`;
+
+      let streak = 0;
+      let cursor = new Date(TODAY_OBJ);
+      while (true) {
+        const k = formatDateKey(cursor);
+        if (getDayTotalSeconds(k) > 0) {
+          streak++;
+          cursor.setDate(cursor.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      document.getElementById('stat-streak').textContent = `${streak}일`;
+
+      const chartEl = document.getElementById('weekly-chart-container');
+      chartEl.innerHTML = '';
+      const maxSec = Math.max(...weekData.map(w => w.seconds), 3600);
+
+      weekData.forEach(item => {
+        const heightPct = Math.max(4, Math.round((item.seconds / maxSec) * 100));
+        const isSelected = item.key === selectedDateKey;
+        const hrs = (item.seconds / 3600).toFixed(1);
+
+        const col = document.createElement('div');
+        col.className = 'flex-1 flex flex-col items-center h-full justify-end group cursor-pointer min-w-0';
+        col.onclick = () => {
+          selectedDateKey = item.key;
+          renderAll();
+        };
+
+        col.innerHTML = `
+          <div class="text-[9px] sm:text-[10px] font-semibold tabular-nums mb-1.5 whitespace-nowrap ${isSelected ? 'text-[#0A0A0A]' : 'text-[#71717A]'}">${hrs}h</div>
+          <div class="w-full max-w-[36px] rounded-t-lg transition-all duration-300 ${
+            isSelected ? 'bg-[#0A0A0A]' : 'bg-[#D4D4D8] group-hover:bg-[#71717A]'
+          }" style="height: ${heightPct}%"></div>
+          <div class="text-[9px] sm:text-[10px] tabular-nums mt-2 whitespace-nowrap ${isSelected ? 'font-bold text-[#0A0A0A]' : 'text-[#71717A]'}">${item.label}</div>
+        `;
+        chartEl.appendChild(col);
+      });
+
+      const subStatsEl = document.getElementById('subject-stats-list');
+      subStatsEl.innerHTML = '';
+      const log = ensureDayLog(selectedDateKey);
+      const sessionLogs = log.sessionLogs || [];
+
+      const sortedSubjects = [...appState.subjects].sort((a, b) => {
+        return (log.subjectSeconds[b.id] || 0) - (log.subjectSeconds[a.id] || 0);
+      });
+
+      sortedSubjects.forEach(sub => {
+        const sec = log.subjectSeconds[sub.id] || 0;
+        const subGoal = sub.goalSeconds || 0;
+        const hasGoal = subGoal > 0;
+        const goalPct = hasGoal ? Math.min(100, Math.round((sec / subGoal) * 100)) : 0;
+
+        const subSessions = sessionLogs.filter(sl => sl.subjectId === sub.id);
+        const latestRange = subSessions.length > 0
+          ? `최근 시작 ${subSessions[0].startTime} ~ 끝 ${subSessions[0].endTime}`
+          : '타이머 기록 없음';
+
+        const row = document.createElement('div');
+        row.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-1 text-xs mb-1">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${sub.color}"></span>
+              <span class="font-semibold text-[#0A0A0A]">${escapeHtml(sub.name)}</span>
+              <span class="text-[10px] text-[#71717A] tabular-nums">· ${escapeHtml(latestRange)}</span>
+            </div>
+            <div class="tabular-nums">
+              <span class="font-bold text-[#0A0A0A]">${formatHMS(sec)}</span>
+              ${hasGoal ? `<span class="text-[#71717A] ml-1.5">/ ${formatHMShort(subGoal)} (${goalPct}%)</span>` : ''}
+            </div>
+          </div>
+          ${hasGoal ? `
+            <div class="w-full h-2 bg-[#F4F4F5] rounded-full overflow-hidden mt-1">
+              <div class="h-full rounded-full transition-all duration-300" style="width: ${goalPct}%; background-color: ${sub.color}"></div>
+            </div>
+          ` : ''}
+        `;
+        subStatsEl.appendChild(row);
+      });
+
+      const sessListEl = document.getElementById('session-logs-list');
+      document.getElementById('stat-session-count').textContent = `${sessionLogs.length}건`;
+      sessListEl.innerHTML = renderSessionRecordsHtml(sessionLogs, selectedDateKey, loggedInUserId, canDeleteTimerRecord());
+    }
+
+    /* ==========================================================================
+       TAB 5: FRIENDS LIST WITH DAILY / WEEKLY / MONTHLY SHARED RECORDS
+       ========================================================================== */
+    window.setGroupPeriod = function(period) {
+      if (!['daily', 'weekly', 'monthly'].includes(period)) return;
+      groupPeriod = period;
+      renderGroupTab();
+    };
+
+    function renderGroupTab() {
+      document.getElementById('my-account-code-display').textContent = appState.accountCode || 'STD-000000';
+
+      ['daily', 'weekly', 'monthly'].forEach(p => {
+        const btn = document.getElementById(`grp-period-${p}`);
+        if (!btn) return;
+        if (p === groupPeriod) {
+          btn.className = 'px-3 py-1 rounded-lg font-bold bg-white text-[#0A0A0A] shadow-2xs transition';
+        } else {
+          btn.className = 'px-3 py-1 rounded-lg font-medium text-[#52525B] hover:text-[#0A0A0A] transition';
+        }
+      });
+
+      document.getElementById('group-period-range-label').textContent = `기준: ${getPeriodRangeLabel(groupPeriod, selectedDateKey)}`;
+
+      const activeSub = activeSubjectId ? appState.subjects.find(s => s.id === activeSubjectId) : null;
+      const mySummary = computeUserPeriodSummary(appState, groupPeriod, selectedDateKey, 0);
+
+      const meCardData = {
+        userId: loggedInUserId,
+        isMe: true,
+        nickname: `${appState.nickname} (나)`,
+        accountCode: appState.accountCode || 'STD-000000',
+        isStudying: Boolean(activeSubjectId && !isTimerPaused),
+        isPaused: Boolean(activeSubjectId && isTimerPaused),
+        currentSubject: activeSub ? (isTimerPaused ? `${activeSub.name} (일시정지)` : activeSub.name) : '대기중',
+        seconds: mySummary.totalSec,
+        sectors: mySummary.sectors,
+        statusMessage: appState.statusMessage || '오늘도 흔들림 없이 집중하기'
+      };
+
+      const friendCodes = appState.friendAccountCodes || [];
+      const connectedFriends = Object.values(allAccountsMap)
+        .filter(u => u.userId !== loggedInUserId && friendCodes.includes((u.accountCode || '').toUpperCase()))
+        .map(fp => {
+          const isToday = fp.todayDateKey === TODAY_KEY;
+          const liveExtra = (isToday && fp.isStudying && !fp.isPaused && fp.updatedAt)
+            ? Math.max(0, Math.min(3600, Math.floor((Date.now() - fp.updatedAt) / 1000)))
+            : 0;
+          const summary = computeUserPeriodSummary(fp, groupPeriod, selectedDateKey, liveExtra);
+
+          return {
+            userId: fp.userId,
+            isMe: false,
+            nickname: fp.nickname || '친구',
+            accountCode: fp.accountCode || '',
+            isStudying: Boolean(isToday && fp.isStudying && !fp.isPaused),
+            isPaused: Boolean(isToday && fp.isPaused),
+            currentSubject: isToday ? (fp.currentSubject || '대기중') : '대기중',
+            seconds: summary.totalSec,
+            sectors: summary.sectors,
+            statusMessage: fp.statusMessage || ''
+          };
+        });
+
+      const allMembers = [meCardData, ...connectedFriends];
+      const studyingCount = allMembers.filter(m => m.isStudying).length;
+      const avgSec = Math.floor(allMembers.reduce((a, b) => a + b.seconds, 0) / allMembers.length);
+
+      const periodPrefixMap = { daily: '일별', weekly: '주일별', monthly: '월별' };
+      const periodPrefix = periodPrefixMap[groupPeriod] || '일별';
+
+      document.getElementById('group-online-count').textContent = `${studyingCount} / ${allMembers.length}명 열공중`;
+      document.getElementById('group-avg-time').textContent = `${periodPrefix} 평균 ${formatHMS(avgSec)}`;
+
+      ['all', 'studying', 'resting'].forEach(f => {
+        const btn = document.getElementById(`grp-filter-${f}`);
+        if (f === groupFilter) {
+          btn.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-[#0A0A0A] text-white transition';
+        } else {
+          btn.className = 'px-3 py-1 rounded-full text-xs font-medium bg-[#F4F4F5] text-[#52525B] border border-[#E4E4E7] transition';
+        }
+      });
+
+      const gridEl = document.getElementById('group-members-grid');
+      gridEl.innerHTML = '';
+
+      const filtered = allMembers.filter(m => {
+        if (groupFilter === 'studying') return m.isStudying;
+        if (groupFilter === 'resting') return !m.isStudying;
+        return true;
+      });
+
+      filtered.forEach(m => {
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-2xl border transition flex flex-col justify-between ${
+          m.isStudying ? 'bg-white border-[#0A0A0A]/35 shadow-2xs' : 'bg-[#FAFAFB] border-[#E4E4E7]'
+        }`;
+
+        const sectorRowsHtml = (m.sectors || []).length === 0
+          ? `<div class="text-[11px] text-[#71717A] py-1">등록된 과목(섹터) 없음</div>`
+          : (m.sectors || []).map(sec => `
+              <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#F4F4F5] border border-[#E4E4E7]/80 text-[11px]">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${sec.color}"></span>
+                  <span class="font-medium text-[#0A0A0A]">${escapeHtml(sec.name)}</span>
+                </div>
+                <span class="font-bold tabular-nums text-[#0A0A0A] shrink-0 ml-2">${formatHMS(sec.seconds)}</span>
+              </div>
+            `).join('');
+
+        card.innerHTML = `
+          <div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0 ${!m.isMe ? 'cursor-pointer' : ''}" ${!m.isMe ? `onclick="openUserStudyDetail('${escapeHtml(m.userId)}')"` : ''}>
+                <span class="w-2 h-2 rounded-full shrink-0 ${
+                  m.isStudying ? 'bg-green-600 pulse-dot' : (m.isPaused ? 'bg-amber-500' : 'bg-[#A1A1AA]')
+                }"></span>
+                <span class="font-bold text-sm text-[#0A0A0A]">${escapeHtml(m.nickname)}</span>
+              </div>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                m.isStudying ? 'bg-[#0A0A0A] text-white' : 'bg-[#F4F4F5] text-[#52525B]'
+              }">${escapeHtml(m.currentSubject)}</span>
+            </div>
+
+            <div class="mt-3 flex flex-wrap items-baseline justify-between gap-2 border-b border-[#F4F4F5] pb-2.5 ${!m.isMe ? 'cursor-pointer' : ''}" ${!m.isMe ? `onclick="openUserStudyDetail('${escapeHtml(m.userId)}')"` : ''}>
+              <div>
+                <div class="text-[10px] text-[#71717A]">${periodPrefix} 전체 공부 시간</div>
+                <div class="text-xl font-bold tabular-nums tracking-tight ${m.isStudying ? 'text-[#0A0A0A]' : 'text-[#52525B]'}">${formatHMS(m.seconds)}</div>
+              </div>
+              <span class="text-[10px] font-semibold tabular-nums text-[#71717A]">${escapeHtml(m.accountCode)}</span>
+            </div>
+
+            <div class="mt-2.5 space-y-1">
+              <div class="text-[10px] font-semibold text-[#71717A]">${periodPrefix} 과목(섹터)별 시간</div>
+              <div class="grid grid-cols-1 gap-1 max-h-40 overflow-y-auto">
+                ${sectorRowsHtml}
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3.5 pt-2.5 border-t border-[#F4F4F5] flex flex-wrap items-center justify-between gap-2">
+            <span class="text-[11px] text-[#52525B] leading-snug">"${escapeHtml(m.statusMessage)}"</span>
+            ${!m.isMe ? `
+              <div class="flex items-center gap-1 shrink-0">
+                <button onclick="openUserStudyDetail('${escapeHtml(m.userId)}')" class="px-2 py-1 rounded-lg border border-[#E4E4E7] hover:border-[#0A0A0A] bg-white text-[11px] font-medium text-[#52525B] transition">
+                  상세
+                </button>
+                <button onclick="cheerFriend('${escapeHtml(m.userId)}', '${escapeHtml(m.nickname)}', ${m.isStudying})" class="px-2.5 py-1 rounded-lg border border-[#E4E4E7] hover:border-[#0A0A0A] bg-white text-[11px] font-semibold text-[#0A0A0A] active:scale-95 transition">
+                  ${m.isStudying ? '👏 응원' : '⏰ 깨우기'}
+                </button>
+              </div>
+            ` : `<span class="text-[10px] font-semibold text-[#71717A] shrink-0">ME</span>`}
+          </div>
+        `;
+        gridEl.appendChild(card);
+      });
+
+      if (connectedFriends.length === 0) {
+        const emptyHint = document.createElement('div');
+        emptyHint.className = 'md:col-span-2 p-6 text-center rounded-2xl border border-dashed border-[#E4E4E7] text-xs text-[#71717A] leading-relaxed';
+        emptyHint.textContent = '아직 연결된 친구가 없습니다. 상단 입력창에 친구의 계정 고유 코드(STD-XXXXXX)를 입력해 추가해보세요.';
+        gridEl.appendChild(emptyHint);
+      }
+    }
+
+    window.setGroupFilter = function(f) {
+      groupFilter = f;
+      renderGroupTab();
+    };
+
+    setInterval(() => {
+      if (!loggedInUserId) return;
+      if (activeTab === 'group') renderGroupTab();
+      if (activeTab === 'admin' && isAdminUnlocked) renderAdminTab();
+    }, 1000);
+
+    /* ==========================================================================
+       PROFILE, SUBJECT & D-DAY MODALS
+       ========================================================================== */
+    window.openModal = function(id) {
+      const el = document.getElementById(id);
+      el.classList.remove('hidden');
+      el.classList.add('flex');
+    };
+
+    window.closeModal = function(id) {
+      const el = document.getElementById(id);
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    };
+
+    window.openProfileModal = function() {
+      document.getElementById('prof-user-id').textContent = appState.userId;
+      document.getElementById('prof-account-code').textContent = appState.accountCode || 'STD-000000';
+      document.getElementById('prof-nickname-input').value = appState.nickname;
+      document.getElementById('prof-status-input').value = appState.statusMessage || '';
+      openModal('profile-modal');
+    };
+
+    window.handleProfileSave = async function(e) {
+      e.preventDefault();
+      const nick = document.getElementById('prof-nickname-input').value.trim();
+      const status = document.getElementById('prof-status-input').value.trim();
+      if (nick) appState.nickname = nick;
+      appState.statusMessage = status || '오늘도 흔들림 없이 집중하기';
+      await persistState(true);
+      closeModal('profile-modal');
+      renderAll();
+      showToast('프로필 정보가 저장되었습니다.');
+    };
+
+    window.openSubjectModal = function(subjectId = null) {
+      const titleEl = document.getElementById('subject-modal-title');
+      const idInput = document.getElementById('edit-subject-id');
+      const nameInput = document.getElementById('subject-name-input');
+      const goalHInput = document.getElementById('subject-goal-hours');
+      const goalMInput = document.getElementById('subject-goal-mins');
+      const delBtn = document.getElementById('btn-delete-subject');
+
+      if (subjectId) {
+        const sub = appState.subjects.find(s => s.id === subjectId);
+        if (!sub) return;
+        titleEl.textContent = '과목 수정';
+        idInput.value = sub.id;
+        nameInput.value = sub.name;
+        const gSec = sub.goalSeconds || 0;
+        goalHInput.value = Math.floor(gSec / 3600);
+        goalMInput.value = Math.floor((gSec % 3600) / 60);
+        selectedModalColor = sub.color;
+        delBtn.classList.remove('hidden');
+      } else {
+        titleEl.textContent = '새 과목 추가';
+        idInput.value = '';
+        nameInput.value = '';
+        goalHInput.value = 0;
+        goalMInput.value = 0;
+        selectedModalColor = SUBJECT_COLORS[appState.subjects.length % SUBJECT_COLORS.length];
+        delBtn.classList.add('hidden');
+      }
+
+      renderColorPicker();
+      openModal('subject-modal');
+      setTimeout(() => nameInput.focus(), 50);
+    };
+
+    function renderColorPicker() {
+      const grid = document.getElementById('color-picker-grid');
+      grid.innerHTML = '';
+      SUBJECT_COLORS.forEach(hex => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `w-9 h-9 rounded-full mx-auto flex items-center justify-center transition ${
+          selectedModalColor === hex ? 'ring-2 ring-offset-2 ring-[#0A0A0A] scale-105' : 'opacity-80 hover:opacity-100'
+        }`;
+        btn.style.backgroundColor = hex;
+        btn.innerHTML = selectedModalColor === hex ? '<span class="w-2.5 h-2.5 rounded-full bg-white"></span>' : '';
+        btn.onclick = () => {
+          selectedModalColor = hex;
+          renderColorPicker();
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    window.saveSubject = async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-subject-id').value;
+      const name = document.getElementById('subject-name-input').value.trim();
+      const gH = parseInt(document.getElementById('subject-goal-hours').value || '0', 10);
+      const gM = parseInt(document.getElementById('subject-goal-mins').value || '0', 10);
+      const goalSeconds = (gH * 3600) + (gM * 60);
+      if (!name) return;
+
+      if (id) {
+        const sub = appState.subjects.find(s => s.id === id);
+        if (sub) {
+          sub.name = name;
+          sub.color = selectedModalColor;
+          sub.goalSeconds = goalSeconds;
+        }
+        showToast('과목 정보가 수정되었습니다.');
+      } else {
+        const newSub = {
+          id: 'sub_' + Date.now(),
+          name,
+          color: selectedModalColor,
+          goalSeconds
+        };
+        appState.subjects.push(newSub);
+        selectedBrushSubjectId = newSub.id;
+        showToast('새 과목이 추가되었습니다.');
+      }
+
+      await persistState(true);
+      closeModal('subject-modal');
+      renderAll();
+    };
+
+    window.deleteCurrentSubject = async function() {
+      const id = document.getElementById('edit-subject-id').value;
+      if (!id) return;
+      appState.subjects = appState.subjects.filter(s => s.id !== id);
+      await persistState(true);
+      closeModal('subject-modal');
+      renderAll();
+      showToast('과목이 삭제되었습니다.');
+    };
+
+    window.openDdayModal = function(targetUserId = null) {
+      const isAdminTarget = Boolean(targetUserId && isAdminUnlocked);
+      const targetUser = isAdminTarget ? allAccountsMap[targetUserId] : appState;
+      if (!targetUser) return;
+
+      document.getElementById('dday-target-user-id').value = isAdminTarget ? targetUserId : '';
+      document.getElementById('dday-modal-title').textContent = isAdminTarget
+        ? `${targetUser.nickname}님 D-Day 지정`
+        : 'D-Day 목표 설정';
+      document.getElementById('dday-modal-subtitle').textContent = isAdminTarget
+        ? `관리자가 ${targetUser.nickname}(@${targetUser.userId}) 계정의 D-Day를 지정합니다.`
+        : '목표 이름과 날짜를 설정하거나 비울 수 있습니다.';
+
+      const norm = normalizeDday(targetUser.dday);
+      const defaultDateObj = new Date(TODAY_OBJ);
+      defaultDateObj.setDate(defaultDateObj.getDate() + 14);
+
+      document.getElementById('dday-title-input').value = norm ? norm.title : '';
+      document.getElementById('dday-date-input').value = norm ? norm.targetDate : formatDateKey(defaultDateObj);
+
+      const clearBtn = document.getElementById('btn-clear-dday');
+      if (norm) clearBtn.classList.remove('hidden');
+      else clearBtn.classList.add('hidden');
+
+      openModal('dday-modal');
+      setTimeout(() => document.getElementById('dday-title-input').focus(), 50);
+    };
+
+    window.saveDday = async function(e) {
+      e.preventDefault();
+      const targetUserId = document.getElementById('dday-target-user-id').value.trim();
+      const title = document.getElementById('dday-title-input').value.trim() || '목표일';
+      const targetDate = document.getElementById('dday-date-input').value;
+      if (!targetDate) return;
+
+      const newDday = { title, targetDate };
+
+      if (targetUserId && isAdminUnlocked && allAccountsMap[targetUserId]) {
+        const targetUser = allAccountsMap[targetUserId];
+        targetUser.dday = newDday;
+        targetUser.updatedAt = Date.now();
+        if (targetUserId === loggedInUserId && appState) {
+          appState.dday = newDday;
+        }
+        saveLocalAccounts(allAccountsMap);
+        if (getGasUrl()) {
+          await pushAccountToCloud(targetUser);
+        }
+        closeModal('dday-modal');
+        renderAll();
+        showToast(`${targetUser.nickname}님의 D-Day가 지정되었습니다.`);
+        return;
+      }
+
+      appState.dday = newDday;
+      await persistState(true);
+      closeModal('dday-modal');
+      renderHeader();
+      showToast('D-Day가 업데이트되었습니다.');
+    };
+
+    window.clearDday = async function() {
+      const targetUserId = document.getElementById('dday-target-user-id').value.trim();
+
+      if (targetUserId && isAdminUnlocked && allAccountsMap[targetUserId]) {
+        const targetUser = allAccountsMap[targetUserId];
+        targetUser.dday = null;
+        targetUser.updatedAt = Date.now();
+        if (targetUserId === loggedInUserId && appState) {
+          appState.dday = null;
+        }
+        saveLocalAccounts(allAccountsMap);
+        if (getGasUrl()) {
+          await pushAccountToCloud(targetUser);
+        }
+        closeModal('dday-modal');
+        renderAll();
+        showToast(`${targetUser.nickname}님의 D-Day가 해제되었습니다.`);
+        return;
+      }
+
+      appState.dday = null;
+      await persistState(true);
+      closeModal('dday-modal');
+      renderHeader();
+      showToast('D-Day가 해제되었습니다.');
+    };
+
+    /* ==========================================================================
+       NAVIGATION & RENDER ORCHESTRATION
+       ========================================================================== */
+    window.switchTab = function(tabName) {
+      if (tabName === 'admin' && !isAdminUnlocked) return;
+      activeTab = tabName;
+
+      document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.dataset.tab === tabName) {
+          btn.classList.remove('text-[#71717A]', 'font-medium');
+          btn.classList.add('text-[#0A0A0A]', 'font-bold');
+        } else {
+          btn.classList.remove('text-[#0A0A0A]', 'font-bold');
+          btn.classList.add('text-[#71717A]', 'font-medium');
+        }
+      });
+
+      renderAll();
+    };
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function renderAll() {
+      if (!appState) return;
+      renderHeader();
+      if (activeTab === 'timer') renderTimerTab();
+      else if (activeTab === 'calendar') renderCalendarTab();
+      else if (activeTab === 'planner') renderPlannerTab();
+      else if (activeTab === 'stats') renderStatsTab();
+      else if (activeTab === 'group') renderGroupTab();
+      else if (activeTab === 'admin' && isAdminUnlocked) renderAdminTab();
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      allAccountsMap = loadLocalAccounts();
+      resolveAutoSyncUrl();
+      updateSyncBadgeUI('local');
+
+      try {
+        const savedUid = sessionStorage.getItem(SESSION_KEY_UID);
+        if (savedUid && allAccountsMap[savedUid]) {
+          await loginAsUser(savedUid, allAccountsMap[savedUid].password);
+        }
+      } catch (e) {}
+
+      if (getGasUrl()) {
+        await fetchCloudAccounts();
+        if (loggedInUserId) renderAll();
+      }
+    });
+  </script>
+</body>
+</html>
