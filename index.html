@@ -134,7 +134,12 @@
         </div>
         <div>
           <label class="block text-xs font-semibold text-[#52525B] mb-1.5">비밀번호</label>
-          <input id="login-pw-input" type="password" autocomplete="current-password" placeholder="비밀번호 입력" class="w-full px-3.5 py-3 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
+          <div class="relative">
+            <input id="login-pw-input" type="password" autocomplete="current-password" placeholder="비밀번호 입력" class="w-full pl-3.5 pr-11 py-3 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
+            <button type="button" onclick="togglePasswordVisibility('login-pw-input', 'login-pw-eye')" aria-label="비밀번호 표시 전환" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg hover:bg-[#F4F4F5] flex items-center justify-center text-[#52525B] hover:text-[#0A0A0A] transition">
+              <span id="login-pw-eye"></span>
+            </button>
+          </div>
         </div>
         <button type="submit" id="login-submit-btn" class="w-full py-3.5 rounded-xl bg-[#0A0A0A] text-white text-sm font-bold hover:bg-[#27272A] active:scale-[0.99] transition">
           로그인
@@ -159,7 +164,7 @@
             YPT
           </button>
           <button id="btn-dday" onclick="openDdayModal()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#E4E4E7] hover:border-[#0A0A0A] bg-[#F4F4F5] transition text-xs font-medium min-w-0">
-            <span id="header-dday-title" class="text-[#52525B] max-w-[90px] sm:max-w-[140px] truncate">D-Day 미설정</span>
+            <span id="header-dday-title" class="text-[#52525B] max-w-[85px] sm:max-w-[130px] truncate">D-Day 미설정</span>
             <span id="header-dday-badge" class="font-bold text-[#0A0A0A] tabular-nums shrink-0">+ 설정</span>
           </button>
         </div>
@@ -177,10 +182,17 @@
           </button>
         </div>
 
-        <button onclick="openProfileModal()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-[#E4E4E7] hover:border-[#0A0A0A] bg-white text-xs font-semibold transition shrink-0 order-2 sm:order-3">
-          <span id="header-sync-dot" class="w-2 h-2 rounded-full bg-green-600 shrink-0"></span>
-          <span id="header-user-name" class="max-w-[90px] sm:max-w-[120px] truncate text-[#0A0A0A]">관리자</span>
-        </button>
+        <div class="flex items-center gap-1.5 shrink-0 order-2 sm:order-3">
+          <button type="button" onclick="openNotificationModal()" aria-label="알림창 열기" title="알림창" class="relative w-8 h-8 rounded-full border border-[#E4E4E7] hover:border-[#0A0A0A] bg-white flex items-center justify-center text-[#0A0A0A] transition shrink-0">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span id="header-unread-badge" class="hidden -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#0A0A0A] text-white text-[9px] font-bold tabular-nums items-center justify-center absolute">0</span>
+          </button>
+
+          <button type="button" onclick="openProfileModal()" title="계정 정보 및 비밀번호 변경" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-[#E4E4E7] hover:border-[#0A0A0A] bg-white text-xs font-semibold transition shrink-0">
+            <span id="header-sync-dot" class="w-2 h-2 rounded-full bg-green-600 shrink-0"></span>
+            <span id="header-user-name" class="max-w-[85px] sm:max-w-[115px] truncate text-[#0A0A0A]">관리자</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -431,7 +443,7 @@
         </div>
       </section>
 
-      <!-- ==================== TAB 5: FRIENDS LIST ==================== -->
+      <!-- ==================== TAB 5: FRIENDS LIST & REQUESTS ==================== -->
       <section id="tab-group" class="tab-panel hidden">
         <div class="px-4 sm:px-8 py-5 border-b border-[#E4E4E7] bg-white">
           <div class="flex flex-wrap items-start justify-between gap-3">
@@ -440,7 +452,7 @@
                 <span class="px-2 py-0.5 rounded-md bg-[#0A0A0A] text-white text-[10px] font-bold tracking-wider shrink-0">FRIENDS & SECTORS</span>
                 <h2 class="text-base font-bold tracking-tight leading-snug">친구 공유 기록 (일별 · 주일별 · 월별)</h2>
               </div>
-              <p class="text-xs text-[#71717A] mt-1 leading-snug">일별·주일별·월별 기간으로 친구들의 전체 공부 시간과 과목(섹터)별 누적 시간을 확인하세요</p>
+              <p class="text-xs text-[#71717A] mt-1 leading-snug">친구 코드를 보내 요청하고 수락하면 서로 공유 기록을 확인하며 응원·깨우기를 보낼 수 있습니다</p>
             </div>
             <div class="text-left sm:text-right shrink-0">
               <div class="text-xs font-bold tabular-nums text-[#0A0A0A]" id="group-online-count">0명 열공중</div>
@@ -464,12 +476,16 @@
               </div>
             </div>
 
-            <form onsubmit="handleAddFriendByAccountCode(event)" class="flex flex-wrap sm:flex-nowrap gap-1.5">
-              <input id="friend-code-input" type="text" maxlength="12" placeholder="친구 계정 코드 입력 (STD-XXXXXX)" class="flex-1 min-w-0 px-3 py-2 rounded-xl border border-[#E4E4E7] bg-white text-xs uppercase tracking-wider tabular-nums focus:outline-none focus:border-[#0A0A0A]" required />
+            <form onsubmit="handleSendFriendRequestByCode(event)" class="flex flex-wrap sm:flex-nowrap gap-1.5">
+              <input id="friend-code-input" type="text" maxlength="12" placeholder="친구 계정 코드 입력 (STD-XXXXXX) 후 요청" class="flex-1 min-w-0 px-3 py-2 rounded-xl border border-[#E4E4E7] bg-white text-xs uppercase tracking-wider tabular-nums focus:outline-none focus:border-[#0A0A0A]" required />
               <button type="submit" class="px-3.5 py-2 rounded-xl bg-[#0A0A0A] text-white text-xs font-semibold hover:bg-[#27272A] shrink-0 transition">
-                친구 추가
+                친구 요청
               </button>
             </form>
+          </div>
+
+          <!-- Incoming / Outgoing Friend Requests Box -->
+          <div id="friend-requests-section" class="mt-4 space-y-2">
           </div>
 
           <!-- Period Selector (일별 / 주일별 / 월별) & Period Range Label -->
@@ -495,11 +511,6 @@
           </div>
         </div>
 
-        <div id="incoming-cheers-banner" class="hidden px-4 sm:px-8 py-2.5 bg-[#0A0A0A] text-white text-xs flex items-center justify-between gap-2">
-          <span id="incoming-cheer-text" class="leading-snug">친구가 응원을 보냈습니다!</span>
-          <button onclick="dismissCheerBanner()" class="text-white/70 hover:text-white ml-2 shrink-0">확인</button>
-        </div>
-
         <div id="group-members-grid" class="p-4 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-3.5">
         </div>
       </section>
@@ -513,7 +524,7 @@
                 <span class="px-2 py-0.5 rounded bg-white text-[#0A0A0A] text-[10px] font-bold tracking-wider shrink-0">ADMIN MODE</span>
                 <h2 class="text-base font-bold tracking-tight leading-snug">관리자 제어 센터</h2>
               </div>
-              <p class="text-xs text-white/70 mt-1 leading-snug">계정 발급 및 사용자별 D-Day·타이머 기록 삭제·플래너·투두리스트·월별/일별/시간별 학습 기록을 열람합니다</p>
+              <p class="text-xs text-white/70 mt-1 leading-snug">계정 발급 및 사용자별 D-Day·비밀번호 확인·타임테이블/투두리스트 수정·알림 발송을 관리합니다</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <button onclick="manualSyncNow()" class="px-3 py-1.5 rounded-full bg-white text-[#0A0A0A] text-xs font-bold hover:bg-neutral-200 transition">
@@ -532,7 +543,12 @@
 
           <form onsubmit="handleAdminCreateUser(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <input id="admin-new-id" type="text" maxlength="20" placeholder="사용자 아이디" class="px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
-            <input id="admin-new-pw" type="text" maxlength="30" placeholder="비밀번호" class="px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
+            <div class="relative">
+              <input id="admin-new-pw" type="password" maxlength="30" placeholder="비밀번호" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
+              <button type="button" onclick="togglePasswordVisibility('admin-new-pw', 'admin-new-pw-eye')" aria-label="신규 비밀번호 보기 전환" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg hover:bg-[#F4F4F5] flex items-center justify-center text-[#52525B] hover:text-[#0A0A0A] transition">
+                <span id="admin-new-pw-eye"></span>
+              </button>
+            </div>
             <div class="flex gap-1.5">
               <input id="admin-new-nick" type="text" maxlength="14" placeholder="표시 닉네임" class="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
               <button type="submit" class="px-4 py-2.5 rounded-xl bg-[#0A0A0A] text-white text-xs font-bold hover:bg-[#27272A] shrink-0 transition">
@@ -544,8 +560,8 @@
 
         <div class="px-4 sm:px-8 py-5 bg-white">
           <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div class="flex items-center gap-2">
-              <h3 class="text-sm font-bold text-[#0A0A0A]">전체 사용자 상세 모니터링</h3>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-sm font-bold text-[#0A0A0A]">사용자 모니터링 (관리자 상단 고정 · 일반 가나다순)</h3>
               <span id="admin-total-users-badge" class="text-xs font-bold tabular-nums px-2.5 py-0.5 rounded-full bg-[#F4F4F5] border border-[#E4E4E7]">총 0명</span>
             </div>
             <button onclick="manualSyncNow()" class="text-xs font-semibold underline underline-offset-2 text-[#52525B] hover:text-[#0A0A0A]">
@@ -668,6 +684,30 @@
 
   <!-- ==================== MODALS ==================== -->
 
+  <!-- Notification Center Modal -->
+  <div id="notification-modal" class="fixed inset-0 z-[65] hidden items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+      <div class="px-5 py-4 border-b border-[#E4E4E7] bg-[#FAFAFB] flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <h3 class="text-base font-bold text-[#0A0A0A]">알림창</h3>
+          <span id="notif-modal-badge" class="px-2 py-0.5 rounded-full bg-[#0A0A0A] text-white text-[10px] font-bold tabular-nums">0건</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button type="button" onclick="markAllNotificationsRead()" class="px-2.5 py-1 rounded-lg border border-[#E4E4E7] bg-white hover:border-[#0A0A0A] text-[11px] font-semibold text-[#52525B] hover:text-[#0A0A0A] transition">
+            모두 읽음
+          </button>
+          <button type="button" onclick="clearAllNotifications()" class="px-2.5 py-1 rounded-lg border border-[#E4E4E7] bg-white hover:border-red-300 hover:text-red-600 text-[11px] font-semibold text-[#52525B] transition">
+            비우기
+          </button>
+          <button type="button" onclick="closeModal('notification-modal')" class="w-8 h-8 rounded-full hover:bg-[#E4E4E7]/60 flex items-center justify-center text-[#71717A] font-bold">✕</button>
+        </div>
+      </div>
+
+      <div id="notification-modal-list" class="p-4 overflow-y-auto space-y-2.5 text-xs flex-1">
+      </div>
+    </div>
+  </div>
+
   <!-- Timer Record Detail Modal -->
   <div id="session-detail-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/55 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
     <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-lg p-5 sm:p-6 shadow-2xl my-auto">
@@ -720,9 +760,14 @@
         </div>
         <button onclick="closeModal('admin-gate-modal')" class="w-7 h-7 rounded-full hover:bg-[#F4F4F5] flex items-center justify-center text-[#71717A]">✕</button>
       </div>
-      <p class="text-xs text-[#71717A] mb-4 leading-relaxed">관리자 비밀번호를 입력하면 계정 생성 및 전체 사용자 상세 기록 조회가 활성화됩니다.</p>
+      <p class="text-xs text-[#71717A] mb-4 leading-relaxed">관리자 비밀번호를 입력하면 계정 생성 및 전체 사용자 상세 기록 조회·수정이 활성화됩니다.</p>
       <form onsubmit="handleAdminGateSubmit(event)" class="space-y-3">
-        <input id="admin-gate-pw-input" type="password" placeholder="관리자 비밀번호 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
+        <div class="relative">
+          <input id="admin-gate-pw-input" type="password" placeholder="관리자 비밀번호 입력" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
+          <button type="button" onclick="togglePasswordVisibility('admin-gate-pw-input', 'admin-gate-pw-eye')" aria-label="관리자 비밀번호 표시 전환" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg hover:bg-[#F4F4F5] flex items-center justify-center text-[#52525B] hover:text-[#0A0A0A] transition">
+            <span id="admin-gate-pw-eye"></span>
+          </button>
+        </div>
         <button type="submit" class="w-full py-2.5 rounded-xl bg-[#0A0A0A] text-white text-xs font-bold hover:bg-[#27272A] transition">
           관리자 모드 입장
         </button>
@@ -730,7 +775,7 @@
     </div>
   </div>
 
-  <!-- Profile & Account Code Modal -->
+  <!-- Profile, Account Code & Password Change Modal -->
   <div id="profile-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
     <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-sm p-6 shadow-xl my-auto">
       <div class="flex items-center justify-between mb-4">
@@ -759,11 +804,33 @@
           <input id="prof-status-input" type="text" maxlength="32" class="w-full px-3.5 py-2 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" />
         </div>
         <button type="submit" class="w-full py-2.5 rounded-xl bg-[#0A0A0A] text-white text-xs font-semibold hover:bg-[#27272A] transition">
-          저장하기
+          프로필 저장
         </button>
       </form>
 
-      <button onclick="handleLogout()" class="w-full mt-2.5 py-2 rounded-xl border border-[#E4E4E7] hover:border-red-500 hover:text-red-600 text-xs font-semibold text-[#52525B] transition">
+      <!-- Password Change Section -->
+      <div class="mt-4 pt-4 border-t border-[#E4E4E7]">
+        <div class="text-xs font-bold text-[#0A0A0A] mb-2">비밀번호 변경</div>
+        <form onsubmit="handlePasswordChange(event)" class="space-y-2.5">
+          <div class="relative">
+            <input id="prof-current-pw-input" type="password" placeholder="현재 비밀번호" class="w-full pl-3.5 pr-10 py-2 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
+            <button type="button" onclick="togglePasswordVisibility('prof-current-pw-input', 'prof-cur-pw-eye')" aria-label="현재 비밀번호 보기" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg hover:bg-[#F4F4F5] flex items-center justify-center text-[#52525B] hover:text-[#0A0A0A] transition">
+              <span id="prof-cur-pw-eye"></span>
+            </button>
+          </div>
+          <div class="relative">
+            <input id="prof-new-pw-input" type="password" minlength="4" maxlength="30" placeholder="새 비밀번호 (4자 이상)" class="w-full pl-3.5 pr-10 py-2 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
+            <button type="button" onclick="togglePasswordVisibility('prof-new-pw-input', 'prof-new-pw-eye')" aria-label="새 비밀번호 보기" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg hover:bg-[#F4F4F5] flex items-center justify-center text-[#52525B] hover:text-[#0A0A0A] transition">
+              <span id="prof-new-pw-eye"></span>
+            </button>
+          </div>
+          <button type="submit" class="w-full py-2 rounded-xl border border-[#0A0A0A] bg-white hover:bg-[#0A0A0A] text-[#0A0A0A] hover:text-white text-xs font-bold transition">
+            비밀번호 변경하기
+          </button>
+        </form>
+      </div>
+
+      <button onclick="handleLogout()" class="w-full mt-3 py-2 rounded-xl border border-[#E4E4E7] hover:border-red-500 hover:text-red-600 text-xs font-semibold text-[#52525B] transition">
         로그아웃
       </button>
     </div>
@@ -856,7 +923,7 @@
     </div>
   </div>
 
-  <!-- Admin Full User Inspection Modal -->
+  <!-- Admin Full User Inspection & Edit Modal -->
   <div id="admin-inspect-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/55 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
     <div class="bg-white border border-[#E4E4E7] rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
       <div class="px-5 py-4 border-b border-[#E4E4E7] bg-[#FAFAFB] flex items-center justify-between gap-3">
@@ -878,8 +945,8 @@
         <div class="flex flex-wrap items-center gap-1 bg-[#F4F4F5] p-1 rounded-xl border border-[#E4E4E7] text-xs">
           <button type="button" onclick="setAdminInspectTab('summary')" id="adm-subtab-summary" class="px-2.5 py-1 rounded-lg font-bold bg-white text-[#0A0A0A]">일별·월별·과목</button>
           <button type="button" onclick="setAdminInspectTab('records')" id="adm-subtab-records" class="px-2.5 py-1 rounded-lg font-medium text-[#52525B]">타이머 기록/삭제</button>
-          <button type="button" onclick="setAdminInspectTab('planner')" id="adm-subtab-planner" class="px-2.5 py-1 rounded-lg font-medium text-[#52525B]">24시 타임테이블</button>
-          <button type="button" onclick="setAdminInspectTab('todos')" id="adm-subtab-todos" class="px-2.5 py-1 rounded-lg font-medium text-[#52525B]">투두리스트</button>
+          <button type="button" onclick="setAdminInspectTab('planner')" id="adm-subtab-planner" class="px-2.5 py-1 rounded-lg font-medium text-[#52525B]">24시 타임테이블 수정</button>
+          <button type="button" onclick="setAdminInspectTab('todos')" id="adm-subtab-todos" class="px-2.5 py-1 rounded-lg font-medium text-[#52525B]">투두리스트 수정</button>
         </div>
       </div>
 
@@ -899,9 +966,9 @@
     /* ==========================================================================
        SILENT AUTO-APPLIED URL (NEVER EXPOSED IN UI)
        ========================================================================== */
-    const STORAGE_KEY_ACCOUNTS = 'ypt_minimal_accounts_db_v6';
-    const STORAGE_KEY_HIDDEN_URL = 'ypt_minimal_hidden_endpoint_v6';
-    const SESSION_KEY_UID = 'ypt_minimal_logged_uid_v6';
+    const STORAGE_KEY_ACCOUNTS = 'ypt_minimal_accounts_db_v7';
+    const STORAGE_KEY_HIDDEN_URL = 'ypt_minimal_hidden_endpoint_v7';
+    const SESSION_KEY_UID = 'ypt_minimal_logged_uid_v7';
 
     const _SILENT_ENDPOINT_PARTS = [
       'https://script.google.com',
@@ -984,6 +1051,15 @@
       return `${h}:${m}:${s}`;
     }
 
+    function formatNotifTime(ts) {
+      const d = new Date(ts || Date.now());
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${m}/${day} ${hh}:${mm}`;
+    }
+
     const TODAY_OBJ = new Date();
     const TODAY_KEY = formatDateKey(TODAY_OBJ);
 
@@ -995,6 +1071,38 @@
       { id: 'sub_5', name: '통합과학2', color: '#7C3AED', goalSeconds: 0 },
       { id: 'sub_6', name: '한국사2', color: '#DC2626', goalSeconds: 0 }
     ];
+
+    const EYE_OPEN_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    const EYE_CLOSED_SVG = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+    function initEyeIcons() {
+      const pairs = [
+        ['login-pw-input', 'login-pw-eye'],
+        ['admin-gate-pw-input', 'admin-gate-pw-eye'],
+        ['prof-current-pw-input', 'prof-cur-pw-eye'],
+        ['prof-new-pw-input', 'prof-new-pw-eye'],
+        ['admin-new-pw', 'admin-new-pw-eye']
+      ];
+      pairs.forEach(([inputId, eyeId]) => {
+        const inp = document.getElementById(inputId);
+        const eye = document.getElementById(eyeId);
+        if (!inp || !eye) return;
+        eye.innerHTML = inp.type === 'password' ? EYE_OPEN_SVG : EYE_CLOSED_SVG;
+      });
+    }
+
+    window.togglePasswordVisibility = function(inputId, eyeId) {
+      const inp = document.getElementById(inputId);
+      const eye = document.getElementById(eyeId);
+      if (!inp) return;
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        if (eye) eye.innerHTML = EYE_CLOSED_SVG;
+      } else {
+        inp.type = 'password';
+        if (eye) eye.innerHTML = EYE_OPEN_SVG;
+      }
+    };
 
     function normalizeDday(rawDday) {
       if (!rawDday || typeof rawDday !== 'object') return null;
@@ -1030,6 +1138,9 @@
         subjects,
         logs,
         friendAccountCodes: [],
+        incomingFriendRequests: [], // [{ fromUserId, fromNickname, fromCode, ts }]
+        outgoingFriendRequests: [], // [toCode]
+        notifications: [], // [{ id, category, title, message, ts, read }]
         isStudying: false,
         isPaused: false,
         currentSubject: '대기중',
@@ -1037,6 +1148,25 @@
         todayDateKey: TODAY_KEY,
         todayTotalSeconds: 0,
         updatedAt: Date.now()
+      };
+    }
+
+    function hydrateUserObject(raw) {
+      const base = createDefaultUserState(
+        raw.userId,
+        raw.password,
+        raw.nickname || raw.userId,
+        Boolean(raw.isAdmin || raw.userId === 'admin'),
+        raw.accountCode
+      );
+      return {
+        ...base,
+        ...raw,
+        dday: normalizeDday(raw.dday),
+        friendAccountCodes: Array.isArray(raw.friendAccountCodes) ? raw.friendAccountCodes : [],
+        incomingFriendRequests: Array.isArray(raw.incomingFriendRequests) ? raw.incomingFriendRequests : [],
+        outgoingFriendRequests: Array.isArray(raw.outgoingFriendRequests) ? raw.outgoingFriendRequests : [],
+        notifications: Array.isArray(raw.notifications) ? raw.notifications : []
       };
     }
 
@@ -1087,18 +1217,7 @@
           }
           allAccountsMap = merged;
           if (loggedInUserId && allAccountsMap[loggedInUserId] && !activeSubjectId) {
-            const base = createDefaultUserState(
-              allAccountsMap[loggedInUserId].userId,
-              allAccountsMap[loggedInUserId].password,
-              allAccountsMap[loggedInUserId].nickname,
-              allAccountsMap[loggedInUserId].isAdmin,
-              allAccountsMap[loggedInUserId].accountCode
-            );
-            appState = {
-              ...base,
-              ...allAccountsMap[loggedInUserId],
-              dday: normalizeDday(allAccountsMap[loggedInUserId].dday)
-            };
+            appState = hydrateUserObject(allAccountsMap[loggedInUserId]);
           }
           saveLocalAccounts(allAccountsMap);
           updateSyncBadgeUI('ok');
@@ -1162,6 +1281,122 @@
     }
 
     /* ==========================================================================
+       NOTIFICATION HELPERS
+       ========================================================================== */
+    function appendNotificationToUser(targetUser, category, title, message) {
+      if (!targetUser) return;
+      if (!Array.isArray(targetUser.notifications)) targetUser.notifications = [];
+      targetUser.notifications.unshift({
+        id: 'notif_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        category: category || 'system',
+        title: title || '알림',
+        message: message || '',
+        ts: Date.now(),
+        read: false
+      });
+      if (targetUser.notifications.length > 80) {
+        targetUser.notifications = targetUser.notifications.slice(0, 80);
+      }
+      targetUser.updatedAt = Date.now();
+    }
+
+    function getUnreadNotificationCount() {
+      if (!appState || !Array.isArray(appState.notifications)) return 0;
+      return appState.notifications.filter(n => !n.read).length;
+    }
+
+    function renderNotificationBadge() {
+      const badge = document.getElementById('header-unread-badge');
+      if (!badge) return;
+      const count = getUnreadNotificationCount();
+      if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : String(count);
+        badge.classList.remove('hidden');
+        badge.classList.add('flex');
+      } else {
+        badge.classList.add('hidden');
+        badge.classList.remove('flex');
+      }
+    }
+
+    window.openNotificationModal = function() {
+      renderNotificationModalList();
+      openModal('notification-modal');
+    };
+
+    window.markAllNotificationsRead = async function() {
+      if (!appState) return;
+      (appState.notifications || []).forEach(n => { n.read = true; });
+      await persistState(true);
+      renderNotificationModalList();
+      renderNotificationBadge();
+      showToast('모든 알림을 읽음 처리했습니다.');
+    };
+
+    window.clearAllNotifications = async function() {
+      if (!appState) return;
+      appState.notifications = [];
+      await persistState(true);
+      renderNotificationModalList();
+      renderNotificationBadge();
+      showToast('알림창을 비웠습니다.');
+    };
+
+    window.markSingleNotificationRead = async function(notifId) {
+      if (!appState) return;
+      const item = (appState.notifications || []).find(n => n.id === notifId);
+      if (item && !item.read) {
+        item.read = true;
+        await persistState(true);
+        renderNotificationModalList();
+        renderNotificationBadge();
+      }
+    };
+
+    function renderNotificationModalList() {
+      const listEl = document.getElementById('notification-modal-list');
+      const badgeEl = document.getElementById('notif-modal-badge');
+      if (!listEl || !appState) return;
+
+      const list = appState.notifications || [];
+      const unread = list.filter(n => !n.read).length;
+      if (badgeEl) {
+        badgeEl.textContent = unread > 0 ? `미확인 ${unread}건` : `${list.length}건`;
+      }
+
+      if (list.length === 0) {
+        listEl.innerHTML = `<div class="py-12 text-center border border-dashed border-[#E4E4E7] rounded-2xl text-[#71717A]">받은 알림이 없습니다.</div>`;
+        return;
+      }
+
+      const categoryLabelMap = {
+        friend_req: '친구 요청',
+        friend_accept: '친구 수락',
+        cheer: '응원/깨우기',
+        admin_edit: '관리자 수정'
+      };
+
+      listEl.innerHTML = list.map(n => {
+        const tag = categoryLabelMap[n.category] || '알림';
+        return `
+          <div onclick="markSingleNotificationRead('${escapeHtml(n.id)}')" class="p-3.5 rounded-2xl border transition cursor-pointer ${
+            n.read ? 'bg-white border-[#E4E4E7] opacity-80' : 'bg-[#FAFAFB] border-[#0A0A0A]'
+          }">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <div class="flex items-center gap-1.5">
+                ${!n.read ? `<span class="w-2 h-2 rounded-full bg-[#0A0A0A] shrink-0"></span>` : ''}
+                <span class="px-1.5 py-0.5 rounded bg-[#F4F4F5] border border-[#E4E4E7] text-[10px] font-bold text-[#0A0A0A]">${escapeHtml(tag)}</span>
+                <span class="font-bold text-[#0A0A0A]">${escapeHtml(n.title)}</span>
+              </div>
+              <span class="text-[10px] text-[#71717A] tabular-nums shrink-0">${formatNotifTime(n.ts)}</span>
+            </div>
+            <p class="text-[#52525B] leading-relaxed">${escapeHtml(n.message)}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* ==========================================================================
        APP STATE VARIABLES
        ========================================================================== */
     const SUBJECT_COLORS = [
@@ -1195,9 +1430,12 @@
     let timerInterval = null;
     let isDimmed = false;
 
+    // Admin Inspect & Edit State
     let adminInspectUserId = null;
     let adminInspectDateKey = TODAY_KEY;
     let adminInspectSubTab = 'summary';
+    let adminBrushSubjectId = 'sub_1';
+    let adminRevealPwMap = {};
 
     let audioCtx = null;
     let noiseNode = null;
@@ -1219,9 +1457,12 @@
 
       if (logoClickTimestamps.length >= 5) {
         logoClickTimestamps = [];
-        document.getElementById('admin-gate-pw-input').value = '';
+        const pwInput = document.getElementById('admin-gate-pw-input');
+        pwInput.value = '';
+        pwInput.type = 'password';
+        initEyeIcons();
         openModal('admin-gate-modal');
-        setTimeout(() => document.getElementById('admin-gate-pw-input').focus(), 50);
+        setTimeout(() => pwInput.focus(), 50);
       }
     };
 
@@ -1275,7 +1516,7 @@
     };
 
     /* ==========================================================================
-       LOGIN & LOGOUT
+       LOGIN, LOGOUT & PASSWORD CHANGE
        ========================================================================== */
     window.handleLoginSubmit = async function(e) {
       e.preventDefault();
@@ -1306,12 +1547,7 @@
       }
 
       loggedInUserId = userId;
-      const base = createDefaultUserState(acc.userId, acc.password, acc.nickname, acc.isAdmin, acc.accountCode);
-      appState = {
-        ...base,
-        ...acc,
-        dday: normalizeDday(acc.dday)
-      };
+      appState = hydrateUserObject(acc);
       if (!appState.accountCode) {
         appState.accountCode = generateAccountCode();
       }
@@ -1338,6 +1574,42 @@
       renderAll();
       showToast(`${appState.nickname}님 환영합니다.`);
     }
+
+    window.handlePasswordChange = async function(e) {
+      e.preventDefault();
+      if (!appState || !loggedInUserId) return;
+
+      const curPw = document.getElementById('prof-current-pw-input').value;
+      const newPw = document.getElementById('prof-new-pw-input').value.trim();
+
+      const storedPw = (allAccountsMap[loggedInUserId] && allAccountsMap[loggedInUserId].password) || appState.password;
+      if (curPw !== storedPw) {
+        showToast('현재 비밀번호가 일치하지 않습니다.');
+        return;
+      }
+
+      if (newPw.length < 4) {
+        showToast('새 비밀번호는 4자 이상으로 입력해주세요.');
+        return;
+      }
+
+      appState.password = newPw;
+      allAccountsMap[loggedInUserId] = {
+        ...allAccountsMap[loggedInUserId],
+        ...appState,
+        password: newPw,
+        updatedAt: Date.now()
+      };
+      saveLocalAccounts(allAccountsMap);
+      await persistState(true);
+
+      document.getElementById('prof-current-pw-input').value = '';
+      document.getElementById('prof-new-pw-input').value = '';
+      if (activeTab === 'admin' && isAdminUnlocked) {
+        renderAdminTab();
+      }
+      showToast('비밀번호가 변경되었으며 관리자 패널에도 반영되었습니다.');
+    };
 
     window.handleLogout = async function() {
       if (activeSubjectId) {
@@ -1375,11 +1647,14 @@
       appState.dday = normalizeDday(appState.dday);
       appState.updatedAt = Date.now();
 
-      allAccountsMap[loggedInUserId] = appState;
+      allAccountsMap[loggedInUserId] = {
+        ...(allAccountsMap[loggedInUserId] || {}),
+        ...appState
+      };
       saveLocalAccounts(allAccountsMap);
 
       if (pushRemote && getGasUrl()) {
-        pushAccountToCloud(appState);
+        pushAccountToCloud(allAccountsMap[loggedInUserId]);
       }
     }
 
@@ -1415,7 +1690,7 @@
        ========================================================================== */
     function getWeekDateKeys(anchorDateKey) {
       const d = parseDateKey(anchorDateKey);
-      const dayOfWeek = d.getDay(); // 0=일, 1=월, ..., 6=토
+      const dayOfWeek = d.getDay();
       const sunday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dayOfWeek);
       const keys = [];
       for (let i = 0; i < 7; i++) {
@@ -1499,7 +1774,7 @@
     }
 
     /* ==========================================================================
-       BACKGROUND SYNC & CHEERS
+       BACKGROUND SYNC & REALTIME NOTIFICATION LISTENER
        ========================================================================== */
     window.manualSyncNow = async function() {
       if (!getGasUrl()) {
@@ -1510,29 +1785,51 @@
       showToast('최신 기록 동기화 중...');
       if (appState) await pushAccountToCloud(appState);
       await fetchCloudAccounts();
-      checkIncomingCheers();
+      syncRealtimeNotificationsFromCloud();
       renderAll();
       showToast('최신 데이터 동기화 완료');
     };
 
-    function checkIncomingCheers() {
+    let knownNotificationIds = new Set();
+
+    function syncRealtimeNotificationsFromCloud() {
       if (!loggedInUserId || !allAccountsMap[loggedInUserId]) return;
-      const remoteSelf = allAccountsMap[loggedInUserId];
-      if (remoteSelf.latestCheer && (!window._lastCheerTs || remoteSelf.latestCheer.ts > window._lastCheerTs)) {
-        window._lastCheerTs = remoteSelf.latestCheer.ts;
-        const banner = document.getElementById('incoming-cheers-banner');
-        const txt = document.getElementById('incoming-cheer-text');
-        txt.textContent = `${remoteSelf.latestCheer.fromName}님이 "${remoteSelf.latestCheer.type === 'cheer' ? '👏 불꽃 응원' : '⏰ 공부 깨우기'}"를 보냈습니다!`;
-        banner.classList.remove('hidden');
-        showToast(txt.textContent);
+      const remoteSelf = hydrateUserObject(allAccountsMap[loggedInUserId]);
+
+      // Merge any unread notifications that arrived remotely
+      const localNotifs = Array.isArray(appState.notifications) ? appState.notifications : [];
+      const localIds = new Set(localNotifs.map(n => n.id));
+      let newlyArrived = [];
+
+      (remoteSelf.notifications || []).forEach(rn => {
+        if (!localIds.has(rn.id)) {
+          localNotifs.unshift(rn);
+          if (!rn.read && !knownNotificationIds.has(rn.id)) {
+            newlyArrived.push(rn);
+          }
+        }
+        knownNotificationIds.add(rn.id);
+      });
+
+      localNotifs.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      appState.notifications = localNotifs.slice(0, 80);
+
+      // Sync friend lists and incoming requests if updated remotely
+      appState.friendAccountCodes = Array.from(new Set([...(appState.friendAccountCodes || []), ...(remoteSelf.friendAccountCodes || [])]));
+      appState.incomingFriendRequests = remoteSelf.incomingFriendRequests || [];
+      appState.outgoingFriendRequests = remoteSelf.outgoingFriendRequests || [];
+
+      if (newlyArrived.length > 0) {
+        showToast(`${newlyArrived[0].title}: ${newlyArrived[0].message}`);
       }
+      renderNotificationBadge();
     }
 
     setInterval(async () => {
       if (!getGasUrl()) return;
       await fetchCloudAccounts();
       if (!loggedInUserId) return;
-      checkIncomingCheers();
+      syncRealtimeNotificationsFromCloud();
       if (activeTab === 'group') renderGroupTab();
       if (activeTab === 'admin' && isAdminUnlocked) renderAdminTab();
     }, 10000);
@@ -1625,8 +1922,13 @@
     };
 
     /* ==========================================================================
-       ADMIN PANEL ACTIONS & FULL USER INSPECTION (ALREADY IMPLEMENTED)
+       ADMIN PANEL: SORTING (ADMIN TOP, OTHERS ALPHABETICAL), PASSWORD EYE & EDITING
        ========================================================================== */
+    window.toggleAdminRowPasswordReveal = function(uid) {
+      adminRevealPwMap[uid] = !adminRevealPwMap[uid];
+      renderAdminTab();
+    };
+
     window.handleAdminCreateUser = async function(e) {
       e.preventDefault();
       if (!isAdminUnlocked) return;
@@ -1712,10 +2014,15 @@
       const listEl = document.getElementById('admin-users-list');
       listEl.innerHTML = '';
 
+      // Admin always pinned at top; general users sorted alphabetically (가나다순)
       const users = Object.values(allAccountsMap).sort((a, b) => {
-        const aSec = a.todayDateKey === TODAY_KEY ? (a.todayTotalSeconds || 0) : 0;
-        const bSec = b.todayDateKey === TODAY_KEY ? (b.todayTotalSeconds || 0) : 0;
-        return bSec - aSec;
+        const aIsAdmin = a.userId === 'admin' || Boolean(a.isAdmin);
+        const bIsAdmin = b.userId === 'admin' || Boolean(b.isAdmin);
+        if (aIsAdmin && !bIsAdmin) return -1;
+        if (!aIsAdmin && bIsAdmin) return 1;
+        const nameA = (a.nickname || a.userId || '').trim();
+        const nameB = (b.nickname || b.userId || '').trim();
+        return nameA.localeCompare(nameB, 'ko');
       });
 
       document.getElementById('admin-total-users-badge').textContent = `총 ${users.length}명`;
@@ -1752,19 +2059,36 @@
           ? `${normDday.title} (${ddayBadge} · ${normDday.targetDate})`
           : 'D-Day 미설정';
 
+        const isAdminRow = u.userId === 'admin' || Boolean(u.isAdmin);
+        const isPwShown = Boolean(adminRevealPwMap[u.userId]);
+        const pwDisplay = isPwShown ? (u.password || '') : '••••••••';
+
         const card = document.createElement('div');
-        card.className = 'p-4 rounded-2xl border border-[#E4E4E7] bg-[#FAFAFB] space-y-3';
+        card.className = `p-4 rounded-2xl border space-y-3 ${
+          isAdminRow ? 'border-[#0A0A0A] bg-white' : 'border-[#E4E4E7] bg-[#FAFAFB]'
+        }`;
 
         card.innerHTML = `
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="w-2 h-2 rounded-full shrink-0 ${isToday && u.isStudying ? 'bg-green-600 pulse-dot' : 'bg-[#A1A1AA]'}"></span>
+                ${isAdminRow ? `<span class="px-1.5 py-0.5 rounded bg-[#0A0A0A] text-white text-[10px] font-bold shrink-0">관리자</span>` : ''}
                 <span class="font-bold text-sm text-[#0A0A0A]">${escapeHtml(u.nickname)}</span>
                 <span class="text-[11px] font-medium text-[#71717A] tabular-nums">(@${escapeHtml(u.userId)})</span>
                 <span class="px-1.5 py-0.5 rounded bg-white border border-[#E4E4E7] text-[10px] font-bold tabular-nums text-[#0A0A0A]">${escapeHtml(u.accountCode || '')}</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${normDday ? 'bg-[#0A0A0A] text-white' : 'bg-[#F4F4F5] border border-[#E4E4E7] text-[#71717A]'}">${escapeHtml(ddaySummary)}</span>
               </div>
+
+              <div class="mt-1.5 flex items-center gap-2 flex-wrap text-[11px] text-[#52525B]">
+                <span class="font-semibold text-[#71717A]">비밀번호:</span>
+                <span class="font-bold tabular-nums text-[#0A0A0A] px-2 py-0.5 rounded bg-white border border-[#E4E4E7]">${escapeHtml(pwDisplay)}</span>
+                <button type="button" onclick="toggleAdminRowPasswordReveal('${escapeHtml(u.userId)}')" aria-label="비밀번호 보기 전환" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border border-[#E4E4E7] bg-white hover:border-[#0A0A0A] text-[10px] font-semibold text-[#0A0A0A] transition">
+                  ${isPwShown ? EYE_CLOSED_SVG : EYE_OPEN_SVG}
+                  <span>${isPwShown ? '숨기기' : '보기'}</span>
+                </button>
+              </div>
+
               <div class="text-[11px] text-[#52525B] mt-1.5 flex flex-wrap items-center gap-1.5 tabular-nums leading-relaxed">
                 <span>상태: <b>${isToday ? escapeHtml(u.currentSubject || '대기중') : '대기중'}</b></span>
                 <span>·</span>
@@ -1784,8 +2108,8 @@
               <button onclick="openDdayModal('${escapeHtml(u.userId)}')" class="px-3 py-1.5 rounded-xl border border-[#E4E4E7] bg-white hover:border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold transition">
                 D-Day 설정
               </button>
-              <button onclick="openAdminFullUserModal('${escapeHtml(u.userId)}', 'records')" class="px-3 py-1.5 rounded-xl border border-[#E4E4E7] bg-white hover:border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold transition">
-                기록 관리/삭제
+              <button onclick="openAdminFullUserModal('${escapeHtml(u.userId)}', 'planner')" class="px-3 py-1.5 rounded-xl border border-[#E4E4E7] bg-white hover:border-[#0A0A0A] text-[#0A0A0A] text-[11px] font-bold transition">
+                타임테이블·투두 수정
               </button>
               <button onclick="openAdminFullUserModal('${escapeHtml(u.userId)}', 'summary')" class="px-3 py-1.5 rounded-xl bg-[#0A0A0A] text-white hover:bg-[#27272A] text-[11px] font-bold transition">
                 전체 상세 보기
@@ -1809,8 +2133,9 @@
 
       adminInspectUserId = targetUserId;
       adminInspectDateKey = selectedDateKey || TODAY_KEY;
+      adminBrushSubjectId = (u.subjects && u.subjects[0] && u.subjects[0].id) || 'sub_1';
 
-      document.getElementById('admin-inspect-title').textContent = `${u.nickname}님 전체 학습 기록`;
+      document.getElementById('admin-inspect-title').textContent = `${u.nickname}님 전체 학습 기록 및 수정`;
       document.getElementById('admin-inspect-subtitle').textContent = `아이디: @${u.userId} · 코드: ${u.accountCode || '-'} · 상태: ${u.currentSubject || '대기중'}`;
       document.getElementById('admin-inspect-date').value = adminInspectDateKey;
 
@@ -1836,6 +2161,102 @@
         }
       });
       renderAdminInspectModalContent();
+    };
+
+    async function notifyTargetUserOfAdminEdit(targetUser, editSummaryText) {
+      if (!targetUser) return;
+      const adminName = (appState && appState.nickname) || '관리자';
+      appendNotificationToUser(
+        targetUser,
+        'admin_edit',
+        `${adminName}님이 기록을 수정했습니다`,
+        `[${adminInspectDateKey}] ${editSummaryText}`
+      );
+      targetUser.updatedAt = Date.now();
+      if (targetUser.userId === loggedInUserId) {
+        appState = hydrateUserObject(targetUser);
+        renderNotificationBadge();
+      }
+      saveLocalAccounts(allAccountsMap);
+      if (getGasUrl()) {
+        await pushAccountToCloud(targetUser);
+      }
+      showToast(`수정 완료 및 ${targetUser.nickname}님 알림창에 전송됨`);
+    }
+
+    window.setAdminBrushSubject = function(subId) {
+      adminBrushSubjectId = subId;
+      renderAdminInspectModalContent();
+    };
+
+    window.adminToggleTimelineSlot = async function(cellKey) {
+      if (!isAdminUnlocked || !adminInspectUserId) return;
+      const u = allAccountsMap[adminInspectUserId];
+      if (!u) return;
+      const dayLog = ensureDayLog(adminInspectDateKey, u);
+
+      const sub = (u.subjects || []).find(s => s.id === adminBrushSubjectId);
+      let actionDesc = '';
+      if (dayLog.timeline[cellKey] === adminBrushSubjectId) {
+        delete dayLog.timeline[cellKey];
+        actionDesc = `타임테이블(${cellKey.replace('_', ':')}0) 삭제`;
+      } else {
+        dayLog.timeline[cellKey] = adminBrushSubjectId;
+        actionDesc = `타임테이블(${cellKey.replace('_', ':')}0) → ${sub ? sub.name : '과목'} 지정`;
+      }
+
+      renderAdminInspectModalContent();
+      await notifyTargetUserOfAdminEdit(u, actionDesc);
+    };
+
+    window.adminAddTodoForUser = async function(e) {
+      e.preventDefault();
+      if (!isAdminUnlocked || !adminInspectUserId) return;
+      const u = allAccountsMap[adminInspectUserId];
+      if (!u) return;
+
+      const subSelect = document.getElementById('admin-todo-subject-select');
+      const textInput = document.getElementById('admin-todo-text-input');
+      const text = textInput ? textInput.value.trim() : '';
+      const subjectId = subSelect ? subSelect.value : ((u.subjects && u.subjects[0] && u.subjects[0].id) || 'sub_1');
+      if (!text) return;
+
+      const dayLog = ensureDayLog(adminInspectDateKey, u);
+      dayLog.todos.unshift({
+        id: 'todo_' + Date.now(),
+        subjectId,
+        text,
+        done: false
+      });
+
+      renderAdminInspectModalContent();
+      await notifyTargetUserOfAdminEdit(u, `투두 추가: "${text}"`);
+    };
+
+    window.adminToggleTodoForUser = async function(todoId) {
+      if (!isAdminUnlocked || !adminInspectUserId) return;
+      const u = allAccountsMap[adminInspectUserId];
+      if (!u) return;
+      const dayLog = ensureDayLog(adminInspectDateKey, u);
+      const t = (dayLog.todos || []).find(item => item.id === todoId);
+      if (!t) return;
+      t.done = !t.done;
+
+      renderAdminInspectModalContent();
+      await notifyTargetUserOfAdminEdit(u, `투두 "${t.text}" ${t.done ? '완료' : '미완료'} 변경`);
+    };
+
+    window.adminDeleteTodoForUser = async function(todoId) {
+      if (!isAdminUnlocked || !adminInspectUserId) return;
+      const u = allAccountsMap[adminInspectUserId];
+      if (!u) return;
+      const dayLog = ensureDayLog(adminInspectDateKey, u);
+      const targetTodo = (dayLog.todos || []).find(item => item.id === todoId);
+      const removedTitle = targetTodo ? targetTodo.text : '할 일';
+      dayLog.todos = (dayLog.todos || []).filter(item => item.id !== todoId);
+
+      renderAdminInspectModalContent();
+      await notifyTargetUserOfAdminEdit(u, `투두 삭제: "${removedTitle}"`);
     };
 
     function renderSessionRecordsHtml(sessionLogs, dateKey, targetUserId, allowDelete) {
@@ -1953,6 +2374,22 @@
           </div>
         `;
       } else if (adminInspectSubTab === 'planner') {
+        if (!subjects.some(s => s.id === adminBrushSubjectId)) {
+          adminBrushSubjectId = (subjects[0] && subjects[0].id) || null;
+        }
+
+        const brushButtonsHtml = subjects.map(s => {
+          const active = s.id === adminBrushSubjectId;
+          return `
+            <button type="button" onclick="setAdminBrushSubject('${escapeHtml(s.id)}')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition ${
+              active ? 'border-[#0A0A0A] bg-[#0A0A0A] text-white' : 'border-[#E4E4E7] bg-white text-[#52525B]'
+            }">
+              <span class="w-2 h-2 rounded-full" style="background-color:${s.color}"></span>
+              <span>${escapeHtml(s.name)}</span>
+            </button>
+          `;
+        }).join('');
+
         const timelineRows = Array.from({ length: 24 }, (_, h) => {
           const hourStr = String(h).padStart(2, '0');
           let hourFilledSlots = 0;
@@ -1963,7 +2400,7 @@
             const sub = subjects.find(s => s.id === subId);
             if (sub) hourFilledSlots++;
             slotCells.push(`
-              <div class="h-4 rounded-[3px] border border-[#E4E4E7]" style="${sub ? `background-color:${sub.color};border-color:${sub.color}` : 'background-color:#FFFFFF'}" title="${hourStr}:${slot}0 ${sub ? sub.name : '기록 없음'}"></div>
+              <button type="button" onclick="adminToggleTimelineSlot('${cellKey}')" class="h-4 rounded-[3px] border border-[#E4E4E7] hover:border-[#0A0A0A] transition cursor-pointer" style="${sub ? `background-color:${sub.color};border-color:${sub.color}` : 'background-color:#FFFFFF'}" title="${hourStr}:${slot}0 클릭하여 수정 (${sub ? sub.name : '빈칸'})"></button>
             `);
           }
           const hourMinutes = hourFilledSlots * 10;
@@ -1977,6 +2414,14 @@
         }).join('');
 
         bodyEl.innerHTML = `
+          <div class="p-3 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7] space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-1">
+              <span class="font-bold text-xs text-[#0A0A0A]">수정용 과목 브러시 선택</span>
+              <span class="text-[11px] text-[#52525B]">칸 클릭 시 즉시 저장 및 사용자 알림 발송</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">${brushButtonsHtml}</div>
+          </div>
+
           <div class="p-3.5 rounded-2xl bg-[#FAFAFB] border border-[#E4E4E7] overflow-x-auto">
             <div class="min-w-[300px]">
               <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
@@ -1992,33 +2437,54 @@
         const doneCount = todos.filter(t => t.done).length;
         const rate = todos.length > 0 ? Math.round((doneCount / todos.length) * 100) : 0;
 
+        const subOptions = subjects.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`).join('');
+
         const todoItemsHtml = todos.length === 0
           ? `<div class="p-6 text-center border border-dashed border-[#E4E4E7] rounded-2xl text-[#71717A]">해당 날짜에 등록된 투두리스트가 없습니다.</div>`
           : todos.map(t => {
               const sub = subjects.find(s => s.id === t.subjectId) || { name: '기타', color: '#71717A' };
               return `
                 <div class="p-3 rounded-xl border border-[#E4E4E7] bg-white flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-2 min-w-0 flex-1">
+                  <div class="flex items-center gap-2 min-w-0 flex-1 cursor-pointer" onclick="adminToggleTodoForUser('${escapeHtml(t.id)}')">
+                    <div class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0 ${
+                      t.done ? 'bg-[#0A0A0A] border-[#0A0A0A] text-white' : 'border-[#D4D4D8] bg-white'
+                    }">
+                      ${t.done ? '✓' : ''}
+                    </div>
                     <span class="px-1.5 py-0.5 rounded text-[10px] font-bold text-white shrink-0" style="background-color:${sub.color}">${escapeHtml(sub.name)}</span>
                     <span class="${t.done ? 'line-through text-[#71717A]' : 'text-[#0A0A0A] font-medium'} leading-snug">${escapeHtml(t.text)}</span>
                   </div>
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${t.done ? 'bg-[#0A0A0A] text-white' : 'bg-[#F4F4F5] text-[#52525B]'}">${t.done ? '완료' : '미완료'}</span>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${t.done ? 'bg-[#0A0A0A] text-white' : 'bg-[#F4F4F5] text-[#52525B]'}">${t.done ? '완료' : '미완료'}</span>
+                    <button type="button" onclick="adminDeleteTodoForUser('${escapeHtml(t.id)}')" class="px-2 py-0.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-[10px] font-bold">삭제</button>
+                  </div>
                 </div>
               `;
             }).join('');
 
         bodyEl.innerHTML = `
           <div class="p-3.5 rounded-2xl bg-[#F4F4F5] border border-[#E4E4E7] flex flex-wrap items-center justify-between gap-2">
-            <span class="font-bold text-[#0A0A0A]">${adminInspectDateKey} 투두리스트 현황</span>
+            <span class="font-bold text-[#0A0A0A]">${adminInspectDateKey} 투두리스트 수정 (저장 시 알림 발송)</span>
             <span class="font-bold tabular-nums text-[#0A0A0A]">완료 ${doneCount} / ${todos.length} (${rate}%)</span>
           </div>
+
+          <form onsubmit="adminAddTodoForUser(event)" class="flex flex-wrap sm:flex-nowrap gap-1.5">
+            <select id="admin-todo-subject-select" class="px-2.5 py-2 rounded-xl border border-[#E4E4E7] bg-white text-xs font-medium text-[#0A0A0A]">
+              ${subOptions}
+            </select>
+            <input id="admin-todo-text-input" type="text" placeholder="사용자에게 추가할 할 일 입력" class="flex-1 min-w-0 px-3 py-2 rounded-xl border border-[#E4E4E7] bg-white text-xs focus:outline-none focus:border-[#0A0A0A]" required />
+            <button type="submit" class="px-3.5 py-2 rounded-xl bg-[#0A0A0A] text-white text-xs font-bold hover:bg-[#27272A] shrink-0 transition">
+              할 일 추가
+            </button>
+          </form>
+
           <div class="space-y-2">${todoItemsHtml}</div>
         `;
       }
     }
 
     /* ==========================================================================
-       ACCOUNT CODE SHARING & FRIENDS
+       ACCOUNT CODE SHARING, FRIEND REQUESTS & MUTUAL ACCEPTANCE
        ========================================================================== */
     window.copyAccountCode = function() {
       if (!appState || !appState.accountCode) return;
@@ -2031,7 +2497,7 @@
       showToast(`내 계정 고유 코드 [${appState.accountCode}]가 복사되었습니다.`);
     };
 
-    window.handleAddFriendByAccountCode = async function(e) {
+    window.handleSendFriendRequestByCode = async function(e) {
       e.preventDefault();
       const input = document.getElementById('friend-code-input');
       let code = input.value.trim().toUpperCase();
@@ -2041,7 +2507,7 @@
       }
 
       if (code === (appState.accountCode || '').toUpperCase()) {
-        showToast('본인의 계정 코드는 추가할 수 없습니다.');
+        showToast('본인의 계정 코드에는 요청을 보낼 수 없습니다.');
         return;
       }
 
@@ -2049,35 +2515,159 @@
         await fetchCloudAccounts();
       }
 
-      const matchedUser = Object.values(allAccountsMap).find(u => (u.accountCode || '').toUpperCase() === code);
-      if (!matchedUser) {
+      const targetUser = Object.values(allAccountsMap).find(u => (u.accountCode || '').toUpperCase() === code);
+      if (!targetUser) {
         showToast('해당 계정 코드를 가진 사용자를 찾을 수 없습니다.');
         return;
       }
 
-      if (!appState.friendAccountCodes) appState.friendAccountCodes = [];
-      if (appState.friendAccountCodes.includes(code)) {
-        showToast('이미 친구로 등록된 계정입니다.');
+      const hydratedTarget = hydrateUserObject(targetUser);
+
+      if ((appState.friendAccountCodes || []).includes(code)) {
+        showToast('이미 친구로 연결된 계정입니다.');
         return;
       }
 
-      appState.friendAccountCodes.push(code);
+      if ((appState.outgoingFriendRequests || []).includes(code)) {
+        showToast('이미 친구 요청을 보낸 상태입니다.');
+        return;
+      }
+
+      const alreadyIncoming = (hydratedTarget.incomingFriendRequests || []).some(
+        r => (r.fromCode || '').toUpperCase() === (appState.accountCode || '').toUpperCase()
+      );
+      if (alreadyIncoming) {
+        showToast('상대방에게 이미 친구 요청을 보냈습니다.');
+        return;
+      }
+
+      appState.outgoingFriendRequests = Array.from(new Set([...(appState.outgoingFriendRequests || []), code]));
+
+      hydratedTarget.incomingFriendRequests.unshift({
+        fromUserId: appState.userId,
+        fromNickname: appState.nickname,
+        fromCode: appState.accountCode,
+        ts: Date.now()
+      });
+
+      appendNotificationToUser(
+        hydratedTarget,
+        'friend_req',
+        `${appState.nickname}님의 친구 요청`,
+        `${appState.nickname} (${appState.accountCode})님이 친구 요청을 보냈습니다. 친구 탭에서 수락할 수 있습니다.`
+      );
+
+      allAccountsMap[hydratedTarget.userId] = hydratedTarget;
+      saveLocalAccounts(allAccountsMap);
+      await persistState(true);
+      if (getGasUrl()) {
+        await pushAccountToCloud(hydratedTarget);
+      }
+
       input.value = '';
-      await persistState();
       renderGroupTab();
-      showToast(`${matchedUser.nickname}님과 친구로 연결되었습니다!`);
+      showToast(`${hydratedTarget.nickname}님에게 친구 요청을 보냈습니다!`);
+    };
+
+    window.acceptFriendRequest = async function(requesterUserId, requesterCode) {
+      if (!appState) return;
+      if (getGasUrl()) {
+        await fetchCloudAccounts();
+      }
+
+      const requesterRaw = allAccountsMap[requesterUserId] || Object.values(allAccountsMap).find(
+        u => (u.accountCode || '').toUpperCase() === (requesterCode || '').toUpperCase()
+      );
+      if (!requesterRaw) {
+        showToast('요청 보낸 사용자를 찾을 수 없습니다.');
+        return;
+      }
+
+      const requesterObj = hydrateUserObject(requesterRaw);
+      const myCodeUpper = (appState.accountCode || '').toUpperCase();
+      const reqCodeUpper = (requesterObj.accountCode || requesterCode || '').toUpperCase();
+
+      // Add mutual friendship to both sides
+      appState.friendAccountCodes = Array.from(new Set([...(appState.friendAccountCodes || []), reqCodeUpper]));
+      appState.incomingFriendRequests = (appState.incomingFriendRequests || []).filter(
+        r => r.fromUserId !== requesterObj.userId && (r.fromCode || '').toUpperCase() !== reqCodeUpper
+      );
+
+      requesterObj.friendAccountCodes = Array.from(new Set([...(requesterObj.friendAccountCodes || []), myCodeUpper]));
+      requesterObj.outgoingFriendRequests = (requesterObj.outgoingFriendRequests || []).filter(
+        c => (c || '').toUpperCase() !== myCodeUpper
+      );
+
+      appendNotificationToUser(
+        requesterObj,
+        'friend_accept',
+        `${appState.nickname}님이 친구 요청을 수락했습니다`,
+        `${appState.nickname} (${appState.accountCode})님과 친구가 되어 서로 공부 기록을 공유합니다.`
+      );
+
+      appendNotificationToUser(
+        appState,
+        'friend_accept',
+        `${requesterObj.nickname}님과 친구 연결 완료`,
+        `${requesterObj.nickname} (${requesterObj.accountCode})님의 친구 요청을 수락했습니다.`
+      );
+
+      allAccountsMap[requesterObj.userId] = requesterObj;
+      saveLocalAccounts(allAccountsMap);
+      await persistState(true);
+      if (getGasUrl()) {
+        await pushAccountToCloud(requesterObj);
+      }
+
+      renderNotificationBadge();
+      renderGroupTab();
+      showToast(`${requesterObj.nickname}님과 서로 친구가 되었습니다!`);
+    };
+
+    window.declineFriendRequest = async function(requesterUserId, requesterCode) {
+      if (!appState) return;
+      const reqCodeUpper = (requesterCode || '').toUpperCase();
+      appState.incomingFriendRequests = (appState.incomingFriendRequests || []).filter(
+        r => r.fromUserId !== requesterUserId && (r.fromCode || '').toUpperCase() !== reqCodeUpper
+      );
+
+      const requesterRaw = allAccountsMap[requesterUserId] || Object.values(allAccountsMap).find(
+        u => (u.accountCode || '').toUpperCase() === reqCodeUpper
+      );
+      if (requesterRaw) {
+        const requesterObj = hydrateUserObject(requesterRaw);
+        const myCodeUpper = (appState.accountCode || '').toUpperCase();
+        requesterObj.outgoingFriendRequests = (requesterObj.outgoingFriendRequests || []).filter(
+          c => (c || '').toUpperCase() !== myCodeUpper
+        );
+        allAccountsMap[requesterObj.userId] = requesterObj;
+        saveLocalAccounts(allAccountsMap);
+        if (getGasUrl()) {
+          await pushAccountToCloud(requesterObj);
+        }
+      }
+
+      await persistState(true);
+      renderGroupTab();
+      showToast('친구 요청을 거절했습니다.');
     };
 
     window.cheerFriend = async function(targetUserId, targetName, isStudying) {
-      const target = allAccountsMap[targetUserId];
-      if (!target) return;
+      const targetRaw = allAccountsMap[targetUserId];
+      if (!targetRaw) return;
+      const target = hydrateUserObject(targetRaw);
 
-      target.latestCheer = {
-        fromName: appState.nickname,
-        type: isStudying ? 'cheer' : 'wakeup',
-        ts: Date.now()
-      };
-      target.updatedAt = Date.now();
+      const actionLabel = isStudying ? '불꽃 응원' : '공부 깨우기';
+      appendNotificationToUser(
+        target,
+        'cheer',
+        `${appState.nickname}님의 ${actionLabel}`,
+        isStudying
+          ? `${appState.nickname}님이 열공 중인 당신에게 👏 불꽃 응원을 보냈습니다!`
+          : `${appState.nickname}님이 ⏰ 공부 깨우기 알림을 보냈습니다! 지금 집중해볼까요?`
+      );
+
+      allAccountsMap[target.userId] = target;
       saveLocalAccounts(allAccountsMap);
 
       if (getGasUrl()) {
@@ -2085,12 +2675,8 @@
       }
 
       showToast(isStudying
-        ? `${targetName}님에게 불꽃 응원을 보냈습니다!`
+        ? `${targetName}님에게 불꽃 응원을 보내고 알림창에 전달했습니다!`
         : `${targetName}님에게 공부 깨우기 알림을 보냈습니다!`);
-    };
-
-    window.dismissCheerBanner = function() {
-      document.getElementById('incoming-cheers-banner').classList.add('hidden');
     };
 
     window.openUserStudyDetail = function(targetUserId) {
@@ -2196,7 +2782,7 @@
       window._toastTimer = setTimeout(() => {
         toast.classList.remove('toast-active');
         toast.classList.add('toast-enter');
-      }, 2400);
+      }, 2500);
     }
 
     /* ==========================================================================
@@ -2227,6 +2813,7 @@
       }
 
       document.getElementById('header-user-name').textContent = appState.nickname;
+      renderNotificationBadge();
     }
 
     window.changeDate = function(delta) {
@@ -3007,7 +3594,7 @@
     };
 
     /* ==========================================================================
-       TAB 4: STATISTICS (CLICK RECORD FOR FULL DETAIL; DELETE ADMIN-ONLY)
+       TAB 4: STATISTICS
        ========================================================================== */
     function renderStatsTab() {
       const dayTotal = getDayTotalSeconds(selectedDateKey);
@@ -3124,7 +3711,7 @@
     }
 
     /* ==========================================================================
-       TAB 5: FRIENDS LIST WITH DAILY / WEEKLY / MONTHLY SHARED RECORDS
+       TAB 5: FRIENDS LIST, FRIEND REQUESTS & SHARED RECORDS
        ========================================================================== */
     window.setGroupPeriod = function(period) {
       if (!['daily', 'weekly', 'monthly'].includes(period)) return;
@@ -3132,8 +3719,56 @@
       renderGroupTab();
     };
 
+    function renderFriendRequestsSection() {
+      const secEl = document.getElementById('friend-requests-section');
+      if (!secEl || !appState) return;
+
+      const incoming = appState.incomingFriendRequests || [];
+      const outgoing = appState.outgoingFriendRequests || [];
+
+      let html = '';
+
+      if (incoming.length > 0) {
+        html += `
+          <div class="p-3 rounded-2xl border border-[#0A0A0A] bg-[#FAFAFB] space-y-2">
+            <div class="text-xs font-bold text-[#0A0A0A]">받은 친구 요청 (${incoming.length}건)</div>
+            <div class="space-y-1.5">
+              ${incoming.map(req => `
+                <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-white border border-[#E4E4E7] text-xs">
+                  <div>
+                    <span class="font-bold text-[#0A0A0A]">${escapeHtml(req.fromNickname || '사용자')}</span>
+                    <span class="text-[11px] text-[#71717A] tabular-nums ml-1">(${escapeHtml(req.fromCode || '')})</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" onclick="acceptFriendRequest('${escapeHtml(req.fromUserId || '')}', '${escapeHtml(req.fromCode || '')}')" class="px-3 py-1 rounded-lg bg-[#0A0A0A] text-white text-[11px] font-bold hover:bg-[#27272A] transition">
+                      수락
+                    </button>
+                    <button type="button" onclick="declineFriendRequest('${escapeHtml(req.fromUserId || '')}', '${escapeHtml(req.fromCode || '')}')" class="px-2.5 py-1 rounded-lg border border-[#E4E4E7] text-[#52525B] hover:text-red-600 text-[11px] font-semibold transition">
+                      거절
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (outgoing.length > 0) {
+        html += `
+          <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-[#52525B] px-1">
+            <span class="font-semibold text-[#71717A]">보낸 요청 대기중:</span>
+            ${outgoing.map(c => `<span class="px-2 py-0.5 rounded-full bg-[#F4F4F5] border border-[#E4E4E7] font-bold tabular-nums text-[#0A0A0A]">${escapeHtml(c)}</span>`).join('')}
+          </div>
+        `;
+      }
+
+      secEl.innerHTML = html;
+    }
+
     function renderGroupTab() {
       document.getElementById('my-account-code-display').textContent = appState.accountCode || 'STD-000000';
+      renderFriendRequestsSection();
 
       ['daily', 'weekly', 'monthly'].forEach(p => {
         const btn = document.getElementById(`grp-period-${p}`);
@@ -3163,9 +3798,16 @@
         statusMessage: appState.statusMessage || '오늘도 흔들림 없이 집중하기'
       };
 
-      const friendCodes = appState.friendAccountCodes || [];
+      const friendCodes = (appState.friendAccountCodes || []).map(c => (c || '').toUpperCase());
       const connectedFriends = Object.values(allAccountsMap)
-        .filter(u => u.userId !== loggedInUserId && friendCodes.includes((u.accountCode || '').toUpperCase()))
+        .filter(u => {
+          if (u.userId === loggedInUserId) return false;
+          const uCode = (u.accountCode || '').toUpperCase();
+          const uFriends = (u.friendAccountCodes || []).map(c => (c || '').toUpperCase());
+          const myCode = (appState.accountCode || '').toUpperCase();
+          return friendCodes.includes(uCode) && uFriends.includes(myCode);
+        })
+        .sort((a, b) => (a.nickname || '').localeCompare(b.nickname || '', 'ko'))
         .map(fp => {
           const isToday = fp.todayDateKey === TODAY_KEY;
           const liveExtra = (isToday && fp.isStudying && !fp.isPaused && fp.updatedAt)
@@ -3283,7 +3925,7 @@
       if (connectedFriends.length === 0) {
         const emptyHint = document.createElement('div');
         emptyHint.className = 'md:col-span-2 p-6 text-center rounded-2xl border border-dashed border-[#E4E4E7] text-xs text-[#71717A] leading-relaxed';
-        emptyHint.textContent = '아직 연결된 친구가 없습니다. 상단 입력창에 친구의 계정 고유 코드(STD-XXXXXX)를 입력해 추가해보세요.';
+        emptyHint.textContent = '아직 상호 연결된 친구가 없습니다. 친구 코드를 입력해 요청을 보내고 상대방이 수락하면 서로 표시됩니다.';
         gridEl.appendChild(emptyHint);
       }
     }
@@ -3319,6 +3961,11 @@
       document.getElementById('prof-account-code').textContent = appState.accountCode || 'STD-000000';
       document.getElementById('prof-nickname-input').value = appState.nickname;
       document.getElementById('prof-status-input').value = appState.statusMessage || '';
+      document.getElementById('prof-current-pw-input').value = '';
+      document.getElementById('prof-new-pw-input').value = '';
+      document.getElementById('prof-current-pw-input').type = 'password';
+      document.getElementById('prof-new-pw-input').type = 'password';
+      initEyeIcons();
       openModal('profile-modal');
     };
 
@@ -3565,6 +4212,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
+      initEyeIcons();
       allAccountsMap = loadLocalAccounts();
       resolveAutoSyncUrl();
       updateSyncBadgeUI('local');
