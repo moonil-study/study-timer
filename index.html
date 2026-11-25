@@ -903,7 +903,12 @@
     const STORAGE_KEY_HIDDEN_URL = 'ypt_minimal_hidden_endpoint_v6';
     const SESSION_KEY_UID = 'ypt_minimal_logged_uid_v6';
 
-    const _SILENT_ENDPOINT_PARTS = ['https://script.google.com', '/macros/s/', '', '/exec'];
+    const _SILENT_ENDPOINT_PARTS = [
+      'https://script.google.com',
+      '/macros/s/',
+      'AKfycbzL1GvmYHXxLuVRjQQkAz6k9Xqq8Jlj-UEEUeqpIVCqcfR0zg7oIRFQ1DGtopSbgXHx',
+      '/exec'
+    ];
 
     function resolveAutoSyncUrl() {
       try {
@@ -3564,6 +3569,10 @@
       resolveAutoSyncUrl();
       updateSyncBadgeUI('local');
 
+      if (getGasUrl()) {
+        await fetchCloudAccounts();
+      }
+
       try {
         const savedUid = sessionStorage.getItem(SESSION_KEY_UID);
         if (savedUid && allAccountsMap[savedUid]) {
@@ -3571,9 +3580,8 @@
         }
       } catch (e) {}
 
-      if (getGasUrl()) {
-        await fetchCloudAccounts();
-        if (loggedInUserId) renderAll();
+      if (loggedInUserId) {
+        renderAll();
       }
     });
   </script>
