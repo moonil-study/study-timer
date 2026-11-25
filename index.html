@@ -1138,9 +1138,9 @@
         subjects,
         logs,
         friendAccountCodes: [],
-        incomingFriendRequests: [], // [{ fromUserId, fromNickname, fromCode, ts }]
-        outgoingFriendRequests: [], // [toCode]
-        notifications: [], // [{ id, category, title, message, ts, read }]
+        incomingFriendRequests: [],
+        outgoingFriendRequests: [],
+        notifications: [],
         isStudying: false,
         isPaused: false,
         currentSubject: '대기중',
@@ -1415,7 +1415,7 @@
     let activeTab = 'timer';
     let todoFilter = 'all';
     let groupFilter = 'all';
-    let groupPeriod = 'daily'; // 'daily' | 'weekly' | 'monthly'
+    let groupPeriod = 'daily';
     let selectedBrushSubjectId = 'sub_1';
     let selectedModalColor = SUBJECT_COLORS[0];
 
@@ -1443,6 +1443,69 @@
 
     function canDeleteTimerRecord() {
       return Boolean(isAdminUnlocked || (appState && appState.isAdmin) || loggedInUserId === 'admin');
+    }
+
+    /* ==========================================================================
+       REALTIME RECORD DELETION & RELATED DATA RECALCULATION
+       ========================================================================== */
+    function recalculateDayAfterSessionDeletion(dayLog, deletedSession) {
+      if (!dayLog || !deletedSession) return;
+      const subId = deletedSession.subjectId;
+      const dur = Math.max(0, Number(deletedSession.durationSec) || 0);
+
+      if (subId && dayLog.subjectSeconds) {
+        const curSubSec = Number(dayLog.subjectSeconds[subId]) || 0;
+        dayLog.subjectSeconds[subId] = Math.max(0, curSubSec - dur);
+      }
+
+      const remaining = Array.isArray(dayLog.sessionLogs) ? dayLog.sessionLogs : [];
+      let recomputedMax = 0;
+      remaining.forEach(item => {
+        const d = Math.max(0, Number(item.durationSec) || 0);
+        if (d > recomputedMax) recomputedMax = d;
+      });
+      dayLog.maxSessionSeconds = recomputedMax;
+
+      const hasAnyOtherSessionForSub = remaining.some(item => item.subjectId === subId);
+      if (subId && !hasAnyOtherSessionForSub && (dayLog.subjectSeconds[subId] || 0) === 0 && dayLog.timeline) {
+        Object.keys(dayLog.timeline).forEach(slotKey => {
+          if (dayLog.timeline[slotKey] === subId) {
+            delete dayLog.timeline[slotKey];
+          }
+        });
+      }
+    }
+
+    function syncAllActiveViewsAfterRecordChange(affectedUserId, affectedDateKey) {
+      if (allAccountsMap[affectedUserId]) {
+        allAccountsMap[affectedUserId] = hydrateUserObject(allAccountsMap[affectedUserId]);
+      }
+      if (affectedUserId === loggedInUserId && allAccountsMap[loggedInUserId]) {
+        appState = hydrateUserObject(allAccountsMap[loggedInUserId]);
+        appState.todayTotalSeconds = getDayTotalSeconds(TODAY_KEY);
+        allAccountsMap[loggedInUserId] = appState;
+      }
+      saveLocalAccounts(allAccountsMap);
+
+      const sdmModal = document.getElementById('session-detail-modal');
+      if (sdmModal && !sdmModal.classList.contains('hidden')) {
+        closeModal('session-detail-modal');
+      }
+      if (adminInspectUserId === affectedUserId) {
+        renderAdminInspectModalContent();
+      }
+
+      if (appState) {
+        renderHeader();
+        renderTimerTab();
+        renderCalendarTab();
+        renderPlannerTab();
+        renderStatsTab();
+        renderGroupTab();
+        if (isAdminUnlocked) {
+          renderAdminTab();
+        }
+      }
     }
 
     /* ==========================================================================
@@ -1654,7 +1717,7 @@
       saveLocalAccounts(allAccountsMap);
 
       if (pushRemote && getGasUrl()) {
-        pushAccountToCloud(allAccountsMap[loggedInUserId]);
+        await pushAccountToCloud(allAccountsMap[loggedInUserId]);
       }
     }
 
@@ -1745,7 +1808,7 @@
         const dayLog = logs[k];
         if (!dayLog || !dayLog.subjectSeconds) return;
         Object.keys(dayLog.subjectSeconds).forEach(subId => {
-          const val = Number(dayLog.subjectSeconds[subId]) || 0;
+          const val = Math.max(0, Number(dayLog.subjectSeconds[subId]) || 0);
           totalSec += val;
           if (Object.prototype.hasOwnProperty.call(sectorTotals, subId)) {
             sectorTotals[subId] += val;
@@ -1796,7 +1859,6 @@
       if (!loggedInUserId || !allAccountsMap[loggedInUserId]) return;
       const remoteSelf = hydrateUserObject(allAccountsMap[loggedInUserId]);
 
-      // Merge any unread notifications that arrived remotely
       const localNotifs = Array.isArray(appState.notifications) ? appState.notifications : [];
       const localIds = new Set(localNotifs.map(n => n.id));
       let newlyArrived = [];
@@ -1814,7 +1876,6 @@
       localNotifs.sort((a, b) => (b.ts || 0) - (a.ts || 0));
       appState.notifications = localNotifs.slice(0, 80);
 
-      // Sync friend lists and incoming requests if updated remotely
       appState.friendAccountCodes = Array.from(new Set([...(appState.friendAccountCodes || []), ...(remoteSelf.friendAccountCodes || [])]));
       appState.incomingFriendRequests = remoteSelf.incomingFriendRequests || [];
       appState.outgoingFriendRequests = remoteSelf.outgoingFriendRequests || [];
@@ -1908,7 +1969,7 @@
 
         <div class="pt-2 flex flex-wrap items-center justify-end gap-2">
           ${allowDel ? `
-            <button type="button" onclick="closeModal('session-detail-modal'); adminDeleteTimerRecord('${escapeHtml(targetUserId)}', '${escapeHtml(dateKey)}', '${escapeHtml(sl.id)}')" class="px-4 py-2 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition">
+            <button type="button" onclick="adminDeleteTimerRecord('${escapeHtml(targetUserId)}', '${escapeHtml(dateKey)}', '${escapeHtml(sl.id)}')" class="px-4 py-2 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold transition">
               기록 삭제
             </button>
           ` : ''}
@@ -1977,25 +2038,24 @@
       const targetUser = allAccountsMap[targetUserId];
       if (!targetUser) return;
       const dayLog = ensureDayLog(dateKey, targetUser);
-      const beforeLen = dayLog.sessionLogs.length;
+      const targetSession = (dayLog.sessionLogs || []).find(s => s.id === sessionId);
+      if (!targetSession) return;
+
       dayLog.sessionLogs = dayLog.sessionLogs.filter(s => s.id !== sessionId);
-      if (dayLog.sessionLogs.length === beforeLen) return;
+      recalculateDayAfterSessionDeletion(dayLog, targetSession);
 
+      targetUser.todayTotalSeconds = Object.values((targetUser.logs && targetUser.logs[TODAY_KEY] && targetUser.logs[TODAY_KEY].subjectSeconds) || {})
+        .reduce((acc, v) => acc + (Number(v) || 0), 0);
       targetUser.updatedAt = Date.now();
-      if (targetUserId === loggedInUserId) {
-        appState = targetUser;
-      }
-      saveLocalAccounts(allAccountsMap);
+
+      allAccountsMap[targetUserId] = targetUser;
+      syncAllActiveViewsAfterRecordChange(targetUserId, dateKey);
+
       if (getGasUrl()) {
-        await pushAccountToCloud(targetUser);
+        await pushAccountToCloud(allAccountsMap[targetUserId]);
       }
 
-      if (adminInspectUserId === targetUserId) {
-        renderAdminInspectModalContent();
-      }
-      if (activeTab === 'admin') renderAdminTab();
-      if (activeTab === 'stats' && targetUserId === loggedInUserId) renderStatsTab();
-      showToast('선택한 타이머 기록이 삭제되었습니다.');
+      showToast(`${targetSession.subjectName} 기록 삭제 및 전체 화면 즉시 반영 완료`);
     };
 
     function formatDdayBadgeText(ddayObj) {
@@ -2014,7 +2074,6 @@
       const listEl = document.getElementById('admin-users-list');
       listEl.innerHTML = '';
 
-      // Admin always pinned at top; general users sorted alphabetically (가나다순)
       const users = Object.values(allAccountsMap).sort((a, b) => {
         const aIsAdmin = a.userId === 'admin' || Boolean(a.isAdmin);
         const bIsAdmin = b.userId === 'admin' || Boolean(b.isAdmin);
@@ -2029,7 +2088,12 @@
 
       users.forEach(u => {
         const isToday = u.todayDateKey === TODAY_KEY;
-        let liveSec = isToday ? (u.todayTotalSeconds || 0) : 0;
+        const todayLogObj = (u.logs && u.logs[TODAY_KEY]) ? u.logs[TODAY_KEY] : null;
+        const computedTodaySec = todayLogObj
+          ? Object.values(todayLogObj.subjectSeconds || {}).reduce((acc, v) => acc + (Number(v) || 0), 0)
+          : 0;
+
+        let liveSec = computedTodaySec;
         if (u.userId === loggedInUserId) {
           liveSec = getDayTotalSeconds(TODAY_KEY);
         } else if (isToday && u.isStudying && u.updatedAt) {
@@ -2048,7 +2112,7 @@
           Object.keys(u.logs).forEach(k => {
             if (k.startsWith(prefix)) {
               const l = u.logs[k];
-              monthSec += Object.values(l.subjectSeconds || {}).reduce((acc, v) => acc + (v || 0), 0);
+              monthSec += Object.values(l.subjectSeconds || {}).reduce((acc, v) => acc + (Number(v) || 0), 0);
             }
           });
         }
@@ -2304,7 +2368,7 @@
       const dayLog = ensureDayLog(adminInspectDateKey, u);
       const subjects = u.subjects || [];
 
-      const dailySec = Object.values(dayLog.subjectSeconds || {}).reduce((acc, v) => acc + (v || 0), 0);
+      const dailySec = Object.values(dayLog.subjectSeconds || {}).reduce((acc, v) => acc + (Number(v) || 0), 0);
       const dObj = parseDateKey(adminInspectDateKey);
       const monthPrefix = `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, '0')}`;
       let monthlySec = 0;
@@ -2313,7 +2377,7 @@
       if (u.logs) {
         Object.keys(u.logs).forEach(k => {
           const l = u.logs[k];
-          const daySum = Object.values((l && l.subjectSeconds) || {}).reduce((acc, v) => acc + (v || 0), 0);
+          const daySum = Object.values((l && l.subjectSeconds) || {}).reduce((acc, v) => acc + (Number(v) || 0), 0);
           totalAllSec += daySum;
           if (k.startsWith(monthPrefix)) {
             monthlySec += daySum;
@@ -2587,7 +2651,6 @@
       const myCodeUpper = (appState.accountCode || '').toUpperCase();
       const reqCodeUpper = (requesterObj.accountCode || requesterCode || '').toUpperCase();
 
-      // Add mutual friendship to both sides
       appState.friendAccountCodes = Array.from(new Set([...(appState.friendAccountCodes || []), reqCodeUpper]));
       appState.incomingFriendRequests = (appState.incomingFriendRequests || []).filter(
         r => r.fromUserId !== requesterObj.userId && (r.fromCode || '').toUpperCase() !== reqCodeUpper
@@ -2729,7 +2792,7 @@
             ${escapeHtml(u.currentSubject || '대기중')}
           </span>
         </div>
-        <div class="space-y-2 max-h-64 overflow-y-auto pt-1">${rowsHtml}</div>
+        <div class="space-y-2 pt-1">${rowsHtml}</div>
       `;
       openModal('detail-modal');
     };
@@ -2763,9 +2826,9 @@
       return `${y}.${m}.${day} (${days[d.getDay()]})`;
     }
 
-    function getDayTotalSeconds(dateKey) {
-      const log = ensureDayLog(dateKey);
-      return Object.values(log.subjectSeconds || {}).reduce((acc, v) => acc + (v || 0), 0);
+    function getDayTotalSeconds(dateKey, targetState = appState) {
+      const log = ensureDayLog(dateKey, targetState);
+      return Object.values(log.subjectSeconds || {}).reduce((acc, v) => acc + (Number(v) || 0), 0);
     }
 
     function getTotalConfiguredGoalSeconds() {
@@ -3711,7 +3774,7 @@
     }
 
     /* ==========================================================================
-       TAB 5: FRIENDS LIST, FRIEND REQUESTS & SHARED RECORDS
+       TAB 5: FRIENDS LIST, FRIEND REQUESTS & SHARED RECORDS (ALL SUBJECTS SHOWN)
        ========================================================================== */
     window.setGroupPeriod = function(period) {
       if (!['daily', 'weekly', 'monthly'].includes(period)) return;
@@ -3863,7 +3926,8 @@
           m.isStudying ? 'bg-white border-[#0A0A0A]/35 shadow-2xs' : 'bg-[#FAFAFB] border-[#E4E4E7]'
         }`;
 
-        const sectorRowsHtml = (m.sectors || []).length === 0
+        const sectorCount = (m.sectors || []).length;
+        const sectorRowsHtml = sectorCount === 0
           ? `<div class="text-[11px] text-[#71717A] py-1">등록된 과목(섹터) 없음</div>`
           : (m.sectors || []).map(sec => `
               <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#F4F4F5] border border-[#E4E4E7]/80 text-[11px]">
@@ -3898,8 +3962,11 @@
             </div>
 
             <div class="mt-2.5 space-y-1">
-              <div class="text-[10px] font-semibold text-[#71717A]">${periodPrefix} 과목(섹터)별 시간</div>
-              <div class="grid grid-cols-1 gap-1 max-h-40 overflow-y-auto">
+              <div class="flex items-center justify-between text-[10px] font-semibold text-[#71717A]">
+                <span>${periodPrefix} 과목(섹터)별 시간</span>
+                <span class="tabular-nums">전체 ${sectorCount}과목</span>
+              </div>
+              <div class="grid grid-cols-1 gap-1">
                 ${sectorRowsHtml}
               </div>
             </div>
