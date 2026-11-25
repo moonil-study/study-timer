@@ -246,6 +246,10 @@
             </div>
           </div>
 
+          <!-- Live Friends Studying Strip (Appears when connected friends start studying, hides when finished) -->
+          <div id="timer-friends-live-wrap" class="hidden mt-4 space-y-2">
+          </div>
+
           <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[#52525B]">
             <div class="flex items-center gap-2 min-w-0 flex-1">
               <span class="w-1.5 h-1.5 rounded-full bg-[#0A0A0A] shrink-0"></span>
@@ -272,7 +276,7 @@
         </div>
 
         <div class="px-4 sm:px-8 py-3 text-center">
-          <p class="text-[11px] text-[#71717A] leading-relaxed">일시정지(❚❚) 시 세션이 유지되며 일시정지 시간이 카운트됩니다. 다시 시작할 때 사유(선택)를 적으면 타이머 기록에 함께 저장됩니다.</p>
+          <p class="text-[11px] text-[#71717A] leading-relaxed">화면이 꺼지거나 백그라운드로 전환되어도 세션 종료 전까지 타이머가 계속 측정됩니다. 일시정지(❚❚) 시 일시정지 시간이 카운트되며 다시 시작할 때 사유(선택)를 적을 수 있습니다.</p>
         </div>
       </section>
 
@@ -524,7 +528,7 @@
                 <span class="px-2 py-0.5 rounded bg-white text-[#0A0A0A] text-[10px] font-bold tracking-wider shrink-0">ADMIN MODE</span>
                 <h2 class="text-base font-bold tracking-tight leading-snug">관리자 제어 센터</h2>
               </div>
-              <p class="text-xs text-white/70 mt-1 leading-snug">계정 발급 및 사용자별 D-Day·비밀번호 확인·타임테이블/투두리스트 수정·알림 발송을 관리합니다</p>
+              <p class="text-xs text-white/70 mt-1 leading-snug">공지사항 발송, 계정 발급 및 사용자별 D-Day·비밀번호 확인·타임테이블/투두리스트 수정을 관리합니다</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <button onclick="manualSyncNow()" class="px-3 py-1.5 rounded-full bg-white text-[#0A0A0A] text-xs font-bold hover:bg-neutral-200 transition">
@@ -535,6 +539,36 @@
               </button>
             </div>
           </div>
+        </div>
+
+        <!-- Admin Notice Composer (All Users or Specific User) -->
+        <div class="px-4 sm:px-8 py-5 border-b border-[#E4E4E7] bg-[#FAFAFB]">
+          <h3 class="text-sm font-bold text-[#0A0A0A] mb-1">공지사항 작성 및 전송</h3>
+          <p class="text-xs text-[#71717A] mb-3.5 leading-snug">전체 사용자 또는 특정 사용자를 선택해 공지사항을 발송하면 대상의 알림창에 즉시 전달됩니다.</p>
+
+          <form onsubmit="handleAdminSendNotice(event)" class="space-y-2.5 bg-white p-4 rounded-2xl border border-[#E4E4E7]">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-semibold text-[#52525B] mb-1">수신 대상</label>
+                <select id="admin-notice-target-select" class="w-full px-3 py-2.5 rounded-xl border border-[#E4E4E7] bg-[#F4F4F5] text-xs font-semibold text-[#0A0A0A] focus:outline-none focus:border-[#0A0A0A]">
+                  <option value="__ALL__">전체 사용자</option>
+                </select>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-semibold text-[#52525B] mb-1">공지 제목</label>
+                <input id="admin-notice-title-input" type="text" maxlength="40" placeholder="공지사항 제목 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required />
+              </div>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-[#52525B] mb-1">공지 내용</label>
+              <textarea id="admin-notice-message-input" rows="2" maxlength="300" placeholder="전달할 공지 내용을 입력하세요" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E4E4E7] text-xs focus:outline-none focus:border-[#0A0A0A]" required></textarea>
+            </div>
+            <div class="flex justify-end">
+              <button type="submit" class="px-4 py-2 rounded-xl bg-[#0A0A0A] text-white text-xs font-bold hover:bg-[#27272A] transition">
+                공지사항 전송
+              </button>
+            </div>
+          </form>
         </div>
 
         <div class="px-4 sm:px-8 py-5 border-b border-[#E4E4E7] bg-white">
@@ -760,7 +794,7 @@
         </div>
         <button onclick="closeModal('admin-gate-modal')" class="w-7 h-7 rounded-full hover:bg-[#F4F4F5] flex items-center justify-center text-[#71717A]">✕</button>
       </div>
-      <p class="text-xs text-[#71717A] mb-4 leading-relaxed">관리자 비밀번호를 입력하면 계정 생성 및 전체 사용자 상세 기록 조회·수정이 활성화됩니다.</p>
+      <p class="text-xs text-[#71717A] mb-4 leading-relaxed">관리자 비밀번호를 입력하면 공지 발송, 계정 생성 및 전체 사용자 상세 기록 조회·수정이 활성화됩니다.</p>
       <form onsubmit="handleAdminGateSubmit(event)" class="space-y-3">
         <div class="relative">
           <input id="admin-gate-pw-input" type="password" placeholder="관리자 비밀번호 입력" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-[#E4E4E7] text-sm focus:outline-none focus:border-[#0A0A0A]" required />
@@ -1145,6 +1179,7 @@
         isPaused: false,
         currentSubject: '대기중',
         currentSessionStart: null,
+        activeSessionMeta: null,
         todayDateKey: TODAY_KEY,
         todayTotalSeconds: 0,
         updatedAt: Date.now()
@@ -1281,7 +1316,7 @@
     }
 
     /* ==========================================================================
-       NOTIFICATION HELPERS
+       NOTIFICATION & ADMIN NOTICE HELPERS
        ========================================================================== */
     function appendNotificationToUser(targetUser, category, title, message) {
       if (!targetUser) return;
@@ -1299,6 +1334,81 @@
       }
       targetUser.updatedAt = Date.now();
     }
+
+    function populateAdminNoticeTargets() {
+      const selectEl = document.getElementById('admin-notice-target-select');
+      if (!selectEl) return;
+      const prevVal = selectEl.value || '__ALL__';
+      const sortedUsers = Object.values(allAccountsMap).sort((a, b) => {
+        const nameA = (a.nickname || a.userId || '').trim();
+        const nameB = (b.nickname || b.userId || '').trim();
+        return nameA.localeCompare(nameB, 'ko');
+      });
+
+      selectEl.innerHTML = `<option value="__ALL__">전체 사용자 (${sortedUsers.length}명)</option>` + sortedUsers.map(u => {
+        const label = `${u.nickname || u.userId} (@${u.userId})`;
+        return `<option value="${escapeHtml(u.userId)}">${escapeHtml(label)}</option>`;
+      }).join('');
+
+      if (Array.from(selectEl.options).some(o => o.value === prevVal)) {
+        selectEl.value = prevVal;
+      }
+    }
+
+    window.handleAdminSendNotice = async function(e) {
+      e.preventDefault();
+      if (!isAdminUnlocked) return;
+
+      const targetSelect = document.getElementById('admin-notice-target-select');
+      const titleInput = document.getElementById('admin-notice-title-input');
+      const msgInput = document.getElementById('admin-notice-message-input');
+
+      const targetValue = targetSelect ? targetSelect.value : '__ALL__';
+      const noticeTitle = titleInput ? titleInput.value.trim() : '';
+      const noticeMsg = msgInput ? msgInput.value.trim() : '';
+      if (!noticeTitle || !noticeMsg) return;
+
+      if (getGasUrl()) {
+        await fetchCloudAccounts();
+      }
+
+      const senderName = (appState && appState.nickname) || '관리자';
+      const recipients = targetValue === '__ALL__'
+        ? Object.keys(allAccountsMap)
+        : (allAccountsMap[targetValue] ? [targetValue] : []);
+
+      if (recipients.length === 0) {
+        showToast('선택한 대상 사용자를 찾을 수 없습니다.');
+        return;
+      }
+
+      for (const uid of recipients) {
+        const uObj = hydrateUserObject(allAccountsMap[uid]);
+        appendNotificationToUser(
+          uObj,
+          'notice',
+          `[공지] ${noticeTitle}`,
+          `${noticeMsg} (발신: ${senderName})`
+        );
+        allAccountsMap[uid] = uObj;
+        if (uid === loggedInUserId && appState) {
+          appState = hydrateUserObject(uObj);
+        }
+        if (getGasUrl()) {
+          await pushAccountToCloud(uObj);
+        }
+      }
+
+      saveLocalAccounts(allAccountsMap);
+      renderNotificationBadge();
+
+      if (titleInput) titleInput.value = '';
+      if (msgInput) msgInput.value = '';
+
+      showToast(targetValue === '__ALL__'
+        ? `전체 ${recipients.length}명에게 공지사항을 전송했습니다.`
+        : `${allAccountsMap[targetValue].nickname}(@${targetValue})님에게 공지사항을 전송했습니다.`);
+    };
 
     function getUnreadNotificationCount() {
       if (!appState || !Array.isArray(appState.notifications)) return 0;
@@ -1370,6 +1480,7 @@
       }
 
       const categoryLabelMap = {
+        notice: '공지사항',
         friend_req: '친구 요청',
         friend_accept: '친구 수락',
         cheer: '응원/깨우기',
@@ -1378,14 +1489,15 @@
 
       listEl.innerHTML = list.map(n => {
         const tag = categoryLabelMap[n.category] || '알림';
+        const isNotice = n.category === 'notice';
         return `
           <div onclick="markSingleNotificationRead('${escapeHtml(n.id)}')" class="p-3.5 rounded-2xl border transition cursor-pointer ${
-            n.read ? 'bg-white border-[#E4E4E7] opacity-80' : 'bg-[#FAFAFB] border-[#0A0A0A]'
+            n.read ? 'bg-white border-[#E4E4E7] opacity-80' : (isNotice ? 'bg-[#FAFAFB] border-[#0A0A0A] ring-1 ring-[#0A0A0A]' : 'bg-[#FAFAFB] border-[#0A0A0A]')
           }">
             <div class="flex items-center justify-between gap-2 mb-1">
               <div class="flex items-center gap-1.5">
                 ${!n.read ? `<span class="w-2 h-2 rounded-full bg-[#0A0A0A] shrink-0"></span>` : ''}
-                <span class="px-1.5 py-0.5 rounded bg-[#F4F4F5] border border-[#E4E4E7] text-[10px] font-bold text-[#0A0A0A]">${escapeHtml(tag)}</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${isNotice ? 'bg-[#0A0A0A] text-white' : 'bg-[#F4F4F5] border border-[#E4E4E7] text-[#0A0A0A]'}">${escapeHtml(tag)}</span>
                 <span class="font-bold text-[#0A0A0A]">${escapeHtml(n.title)}</span>
               </div>
               <span class="text-[10px] text-[#71717A] tabular-nums shrink-0">${formatNotifTime(n.ts)}</span>
@@ -1419,14 +1531,16 @@
     let selectedBrushSubjectId = 'sub_1';
     let selectedModalColor = SUBJECT_COLORS[0];
 
-    // Focus Session State
+    // Focus Session State (Wall-clock timestamp driven for background/screen-off accuracy)
     let activeSubjectId = null;
+    let activeSessionDateKey = null;
     let isTimerPaused = false;
     let sessionSeconds = 0;
     let pauseElapsedSeconds = 0;
     let pauseStartTimeObj = null;
     let sessionPauses = [];
     let sessionStartDateObj = null;
+    let lastWallClockMs = null;
     let timerInterval = null;
     let isDimmed = false;
 
@@ -1622,6 +1736,7 @@
         sessionStorage.setItem(SESSION_KEY_UID, loggedInUserId);
       } catch (e) {}
 
+      restorePersistedActiveSessionIfAny();
       await persistState();
 
       document.getElementById('login-screen').classList.add('hidden');
@@ -1636,6 +1751,26 @@
 
       renderAll();
       showToast(`${appState.nickname}님 환영합니다.`);
+    }
+
+    function restorePersistedActiveSessionIfAny() {
+      if (!appState || !appState.activeSessionMeta || !appState.activeSessionMeta.subjectId) return;
+      const meta = appState.activeSessionMeta;
+      const sub = (appState.subjects || []).find(s => s.id === meta.subjectId);
+      if (!sub) return;
+
+      activeSubjectId = meta.subjectId;
+      activeSessionDateKey = meta.dateKey || TODAY_KEY;
+      isTimerPaused = Boolean(meta.isPaused);
+      sessionSeconds = Math.max(0, Number(meta.sessionSeconds) || 0);
+      pauseElapsedSeconds = Math.max(0, Number(meta.pauseElapsedSeconds) || 0);
+      pauseStartTimeObj = meta.pauseStartMs ? new Date(meta.pauseStartMs) : null;
+      sessionPauses = Array.isArray(meta.sessionPauses) ? [...meta.sessionPauses] : [];
+      sessionStartDateObj = meta.startMs ? new Date(meta.startMs) : new Date();
+      lastWallClockMs = Number(meta.lastAnchorMs) || Date.now();
+
+      advanceTimerByWallClock(Date.now(), false);
+      runTickLoop();
     }
 
     window.handlePasswordChange = async function(e) {
@@ -1694,10 +1829,29 @@
       showToast('로그아웃되었습니다.');
     };
 
+    function buildActiveSessionMeta(nowMs = Date.now()) {
+      if (!activeSubjectId) return null;
+      return {
+        subjectId: activeSubjectId,
+        dateKey: activeSessionDateKey || selectedDateKey || TODAY_KEY,
+        isPaused: Boolean(isTimerPaused),
+        sessionSeconds,
+        pauseElapsedSeconds,
+        pauseStartMs: pauseStartTimeObj ? pauseStartTimeObj.getTime() : null,
+        sessionPauses: Array.isArray(sessionPauses) ? sessionPauses : [],
+        startMs: sessionStartDateObj ? sessionStartDateObj.getTime() : nowMs,
+        lastAnchorMs: nowMs
+      };
+    }
+
     async function persistState(pushRemote = true) {
       if (!loggedInUserId || !appState) return;
-      const todayTotal = getDayTotalSeconds(TODAY_KEY);
+      const nowMs = Date.now();
+      const targetKey = activeSessionDateKey || TODAY_KEY;
+      const todayTotal = getDayTotalSeconds(targetKey);
       const activeSub = activeSubjectId ? appState.subjects.find(s => s.id === activeSubjectId) : null;
+      const totalAccumulatedPauseSec = (Array.isArray(sessionPauses) ? sessionPauses : []).reduce((acc, p) => acc + (p.durationSec || 0), 0)
+        + (isTimerPaused ? pauseElapsedSeconds : 0);
 
       appState.isStudying = Boolean(activeSubjectId && !isTimerPaused);
       appState.isPaused = Boolean(activeSubjectId && isTimerPaused);
@@ -1705,10 +1859,13 @@
         ? (isTimerPaused ? `${activeSub.name} (일시정지)` : activeSub.name)
         : '대기중';
       appState.currentSessionStart = sessionStartDateObj ? sessionStartDateObj.toISOString() : null;
-      appState.todayDateKey = TODAY_KEY;
+      appState.activeSessionElapsedSec = activeSubjectId ? sessionSeconds : 0;
+      appState.activeSessionPauseSec = activeSubjectId ? totalAccumulatedPauseSec : 0;
+      appState.activeSessionMeta = activeSubjectId ? buildActiveSessionMeta(nowMs) : null;
+      appState.todayDateKey = targetKey;
       appState.todayTotalSeconds = todayTotal;
       appState.dday = normalizeDday(appState.dday);
-      appState.updatedAt = Date.now();
+      appState.updatedAt = nowMs;
 
       allAccountsMap[loggedInUserId] = {
         ...(allAccountsMap[loggedInUserId] || {}),
@@ -1891,6 +2048,7 @@
       await fetchCloudAccounts();
       if (!loggedInUserId) return;
       syncRealtimeNotificationsFromCloud();
+      if (activeTab === 'timer') renderTimerFriendsLiveBanner();
       if (activeTab === 'group') renderGroupTab();
       if (activeTab === 'admin' && isAdminUnlocked) renderAdminTab();
     }, 10000);
@@ -2071,6 +2229,7 @@
     }
 
     function renderAdminTab() {
+      populateAdminNoticeTargets();
       const listEl = document.getElementById('admin-users-list');
       listEl.innerHTML = '';
 
@@ -2096,8 +2255,8 @@
         let liveSec = computedTodaySec;
         if (u.userId === loggedInUserId) {
           liveSec = getDayTotalSeconds(TODAY_KEY);
-        } else if (isToday && u.isStudying && u.updatedAt) {
-          liveSec += Math.max(0, Math.min(3600, Math.floor((Date.now() - u.updatedAt) / 1000)));
+        } else if (isToday && u.isStudying && !u.isPaused && u.updatedAt) {
+          liveSec += Math.max(0, Math.floor((Date.now() - u.updatedAt) / 1000));
         }
 
         const dayLog = (u.logs && u.logs[selectedDateKey]) ? u.logs[selectedDateKey] : { todos: [], sessionLogs: [] };
@@ -2752,7 +2911,7 @@
 
       const container = document.getElementById('dm-content');
       const liveExtra = (u.userId !== loggedInUserId && u.todayDateKey === TODAY_KEY && u.isStudying && !u.isPaused && u.updatedAt)
-        ? Math.max(0, Math.min(3600, Math.floor((Date.now() - u.updatedAt) / 1000)))
+        ? Math.max(0, Math.floor((Date.now() - u.updatedAt) / 1000))
         : 0;
 
       const summary = computeUserPeriodSummary(u, groupPeriod, selectedDateKey, liveExtra);
@@ -2897,6 +3056,83 @@
     };
 
     /* ==========================================================================
+       LIVE FRIENDS STUDYING ON TIMER TAB
+       ========================================================================== */
+    function getActiveStudyingFriends() {
+      if (!appState || !loggedInUserId) return [];
+      const friendCodes = (appState.friendAccountCodes || []).map(c => (c || '').toUpperCase());
+      const myCode = (appState.accountCode || '').toUpperCase();
+      const nowMs = Date.now();
+
+      return Object.values(allAccountsMap)
+        .filter(u => {
+          if (!u || u.userId === loggedInUserId) return false;
+          const uCode = (u.accountCode || '').toUpperCase();
+          const uFriends = (u.friendAccountCodes || []).map(c => (c || '').toUpperCase());
+          const isMutualFriend = friendCodes.includes(uCode) && uFriends.includes(myCode);
+          if (!isMutualFriend) return false;
+          return Boolean(u.isStudying || u.isPaused);
+        })
+        .sort((a, b) => (a.nickname || '').localeCompare(b.nickname || '', 'ko'))
+        .map(fp => {
+          const isPaused = Boolean(fp.isPaused);
+          const isRunning = Boolean(fp.isStudying && !isPaused);
+          const baseSessionSec = Math.max(0, Number(fp.activeSessionElapsedSec) || 0);
+          const basePauseSec = Math.max(0, Number(fp.activeSessionPauseSec) || 0);
+          const deltaSec = fp.updatedAt ? Math.max(0, Math.floor((nowMs - fp.updatedAt) / 1000)) : 0;
+
+          const studySec = isRunning ? (baseSessionSec + deltaSec) : baseSessionSec;
+          const pauseSec = isPaused ? (basePauseSec + deltaSec) : basePauseSec;
+          const rawSubName = (fp.currentSubject || '').replace(/\s*\(일시정지\)\s*$/, '').trim() || '과목 측정중';
+
+          return {
+            userId: fp.userId,
+            nickname: fp.nickname || fp.userId,
+            subjectName: rawSubName,
+            studySec,
+            pauseSec,
+            isPaused
+          };
+        });
+    }
+
+    function renderTimerFriendsLiveBanner() {
+      const wrap = document.getElementById('timer-friends-live-wrap');
+      if (!wrap) return;
+
+      const activeFriends = getActiveStudyingFriends();
+      if (activeFriends.length === 0) {
+        wrap.innerHTML = '';
+        wrap.classList.add('hidden');
+        return;
+      }
+
+      wrap.classList.remove('hidden');
+      wrap.innerHTML = activeFriends.map(f => `
+        <div class="p-3 rounded-2xl border border-[#E4E4E7] bg-[#FAFAFB] flex flex-wrap items-center justify-between gap-2.5 text-xs">
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0 ${f.isPaused ? 'bg-amber-500' : 'bg-green-600 pulse-dot'}"></span>
+            <div class="min-w-0">
+              <div class="font-bold text-[#0A0A0A] leading-snug">
+                <span>${escapeHtml(f.nickname)}</span>
+                <span class="text-[#71717A] font-medium tabular-nums ml-1">(@${escapeHtml(f.userId)})</span>
+                <span class="ml-1.5 px-2 py-0.5 rounded-full bg-white border border-[#E4E4E7] text-[10px] font-bold text-[#0A0A0A]">${escapeHtml(f.subjectName)}</span>
+              </div>
+              <div class="text-[11px] text-[#52525B] mt-0.5 tabular-nums">
+                학습 시간 <b class="text-[#0A0A0A]">${formatHMS(f.studySec)}</b>
+                <span class="mx-1.5 text-[#D4D4D8]">|</span>
+                일시정지 시간 <b class="${f.pauseSec > 0 ? 'text-amber-700' : 'text-[#52525B]'}">${formatHMS(f.pauseSec)}</b>
+              </div>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${
+            f.isPaused ? 'bg-amber-100 text-amber-900' : 'bg-[#0A0A0A] text-white'
+          }">${f.isPaused ? '일시정지중' : '학습중'}</span>
+        </div>
+      `).join('');
+    }
+
+    /* ==========================================================================
        TAB 1: TIMER VIEW
        ========================================================================== */
     function renderTimerTab() {
@@ -2930,6 +3166,8 @@
       } else {
         banner.classList.add('hidden');
       }
+
+      renderTimerFriendsLiveBanner();
 
       const goalLabel = document.getElementById('goal-progress-label');
       const goalBarWrap = document.getElementById('goal-progress-bar-wrap');
@@ -3146,30 +3384,29 @@
     };
 
     /* ==========================================================================
-       FOCUS TIMER: START, PAUSE, RESUME WITH OPTIONAL REASON & FINISH
+       BACKGROUND-SAFE FOCUS TIMER (WALL-CLOCK TIMESTAMP DRIVEN)
        ========================================================================== */
-    function runTickLoop() {
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        if (!activeSubjectId) return;
+    function applyElapsedSecondsToSession(deltaSec, nowMs, shouldSyncUI = true) {
+      if (!activeSubjectId || deltaSec <= 0) return;
 
-        if (isTimerPaused) {
-          pauseElapsedSeconds++;
-        } else {
-          sessionSeconds++;
-          const log = ensureDayLog(selectedDateKey);
-          log.subjectSeconds[activeSubjectId] = (log.subjectSeconds[activeSubjectId] || 0) + 1;
-          if (sessionSeconds > (log.maxSessionSeconds || 0)) {
-            log.maxSessionSeconds = sessionSeconds;
-          }
-
-          const now = new Date();
-          const hourStr = String(now.getHours()).padStart(2, '0');
-          const slotIdx = Math.floor(now.getMinutes() / 10);
-          log.timeline[`${hourStr}_${slotIdx}`] = activeSubjectId;
+      if (isTimerPaused) {
+        pauseElapsedSeconds += deltaSec;
+      } else {
+        sessionSeconds += deltaSec;
+        const logDateKey = activeSessionDateKey || selectedDateKey || TODAY_KEY;
+        const log = ensureDayLog(logDateKey);
+        log.subjectSeconds[activeSubjectId] = (log.subjectSeconds[activeSubjectId] || 0) + deltaSec;
+        if (sessionSeconds > (log.maxSessionSeconds || 0)) {
+          log.maxSessionSeconds = sessionSeconds;
         }
 
-        persistState(sessionSeconds % 15 === 0);
+        const nowObj = new Date(nowMs);
+        const hourStr = String(nowObj.getHours()).padStart(2, '0');
+        const slotIdx = Math.floor(nowObj.getMinutes() / 10);
+        log.timeline[`${hourStr}_${slotIdx}`] = activeSubjectId;
+      }
+
+      if (shouldSyncUI) {
         updateFocusOverlayUI();
         if (activeTab === 'timer') {
           const el = document.getElementById('live-banner-elapsed');
@@ -3178,9 +3415,66 @@
           if (pEl && isTimerPaused) {
             pEl.textContent = `(일시정지 ${formatHMS(pauseElapsedSeconds)})`;
           }
+          const totalDisp = document.getElementById('total-time-display');
+          if (totalDisp && !isTimerPaused) {
+            totalDisp.textContent = formatHMS(getDayTotalSeconds(selectedDateKey));
+          }
         }
-      }, 1000);
+      }
     }
+
+    function advanceTimerByWallClock(nowMs = Date.now(), shouldSyncUI = true) {
+      if (!activeSubjectId) return;
+      if (!lastWallClockMs) {
+        lastWallClockMs = nowMs;
+        return;
+      }
+      const diffMs = nowMs - lastWallClockMs;
+      if (diffMs >= 1000) {
+        const wholeSec = Math.floor(diffMs / 1000);
+        lastWallClockMs += wholeSec * 1000;
+        applyElapsedSecondsToSession(wholeSec, nowMs, shouldSyncUI);
+      }
+    }
+
+    function runTickLoop() {
+      clearInterval(timerInterval);
+      lastWallClockMs = Date.now();
+      let tickCounter = 0;
+
+      timerInterval = setInterval(() => {
+        if (!activeSubjectId || !appState) return;
+        const nowMs = Date.now();
+        advanceTimerByWallClock(nowMs, true);
+        tickCounter++;
+        persistState(tickCounter % 5 === 0);
+      }, 500);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!activeSubjectId || !appState) return;
+      if (document.visibilityState === 'hidden') {
+        advanceTimerByWallClock(Date.now(), false);
+        persistState(true);
+      } else {
+        advanceTimerByWallClock(Date.now(), true);
+        persistState(true);
+        if (activeTab === 'timer') renderTimerTab();
+      }
+    });
+
+    window.addEventListener('pageshow', () => {
+      if (!activeSubjectId || !appState) return;
+      advanceTimerByWallClock(Date.now(), true);
+      persistState(true);
+      if (activeTab === 'timer') renderTimerTab();
+    });
+
+    window.addEventListener('focus', () => {
+      if (!activeSubjectId || !appState) return;
+      advanceTimerByWallClock(Date.now(), true);
+      if (activeTab === 'timer') renderTimerTab();
+    });
 
     window.startFocusSession = function(subjectId) {
       const sub = appState.subjects.find(s => s.id === subjectId);
@@ -3195,13 +3489,16 @@
         finishFocusSession();
       }
 
+      const nowObj = new Date();
       activeSubjectId = subjectId;
+      activeSessionDateKey = selectedDateKey || TODAY_KEY;
       isTimerPaused = false;
       sessionSeconds = 0;
       pauseElapsedSeconds = 0;
       pauseStartTimeObj = null;
       sessionPauses = [];
-      sessionStartDateObj = new Date();
+      sessionStartDateObj = nowObj;
+      lastWallClockMs = nowObj.getTime();
 
       const overlay = document.getElementById('focus-overlay');
       document.getElementById('focus-subject-name').textContent = sub.name;
@@ -3219,10 +3516,14 @@
 
     window.handlePauseOrResumeClick = async function() {
       if (!activeSubjectId) return;
+      const nowMs = Date.now();
+      advanceTimerByWallClock(nowMs, true);
+
       if (!isTimerPaused) {
         isTimerPaused = true;
         pauseElapsedSeconds = 0;
-        pauseStartTimeObj = new Date();
+        pauseStartTimeObj = new Date(nowMs);
+        lastWallClockMs = nowMs;
         updateFocusOverlayUI();
         await persistState(true);
         renderTimerTab();
@@ -3233,6 +3534,7 @@
     };
 
     function openResumeReasonModal() {
+      advanceTimerByWallClock(Date.now(), true);
       document.getElementById('resume-modal-pause-duration').textContent = formatHMS(pauseElapsedSeconds);
       document.getElementById('pause-reason-input').value = '';
       openModal('pause-reason-modal');
@@ -3255,7 +3557,9 @@
 
     async function finalizeResume(reasonText) {
       closeModal('pause-reason-modal');
-      const resumedAtObj = new Date();
+      const nowMs = Date.now();
+      advanceTimerByWallClock(nowMs, true);
+      const resumedAtObj = new Date(nowMs);
       sessionPauses.push({
         durationSec: pauseElapsedSeconds,
         startedAt: pauseStartTimeObj ? formatTimeHMS(pauseStartTimeObj) : formatTimeHMS(resumedAtObj),
@@ -3266,6 +3570,7 @@
       pauseElapsedSeconds = 0;
       pauseStartTimeObj = null;
       isTimerPaused = false;
+      lastWallClockMs = nowMs;
 
       updateFocusOverlayUI();
       await persistState(true);
@@ -3275,6 +3580,7 @@
 
     window.reopenFocusOverlay = function() {
       if (!activeSubjectId) return;
+      advanceTimerByWallClock(Date.now(), true);
       const sub = appState.subjects.find(s => s.id === activeSubjectId);
       const overlay = document.getElementById('focus-overlay');
       if (sub) {
@@ -3291,10 +3597,11 @@
 
     function updateFocusOverlayUI() {
       if (!activeSubjectId) return;
-      const log = ensureDayLog(selectedDateKey);
+      const logKey = activeSessionDateKey || selectedDateKey || TODAY_KEY;
+      const log = ensureDayLog(logKey);
       const sub = appState.subjects.find(s => s.id === activeSubjectId);
       const subTotal = log.subjectSeconds[activeSubjectId] || 0;
-      const dayTotal = getDayTotalSeconds(selectedDateKey);
+      const dayTotal = getDayTotalSeconds(logKey);
       const subGoal = sub ? (sub.goalSeconds || 0) : 0;
 
       document.getElementById('focus-session-timer').textContent = formatHMS(sessionSeconds);
@@ -3345,6 +3652,9 @@
     }
 
     window.finishFocusSession = async function() {
+      const nowMs = Date.now();
+      advanceTimerByWallClock(nowMs, false);
+
       closeModal('pause-reason-modal');
       clearInterval(timerInterval);
       timerInterval = null;
@@ -3355,7 +3665,8 @@
       const recordedSec = sessionSeconds;
       const recordedHMS = formatHMS(recordedSec);
       const sub = appState.subjects.find(s => s.id === activeSubjectId);
-      const endDateObj = new Date();
+      const logKey = activeSessionDateKey || selectedDateKey || TODAY_KEY;
+      const endDateObj = new Date(nowMs);
       const startStr = sessionStartDateObj ? formatTimeHMS(sessionStartDateObj) : formatTimeHMS(endDateObj);
       const endStr = formatTimeHMS(endDateObj);
 
@@ -3370,7 +3681,7 @@
       }
 
       if (sub && (recordedSec > 0 || finalPauses.length > 0)) {
-        const log = ensureDayLog(selectedDateKey);
+        const log = ensureDayLog(logKey);
         log.sessionLogs.unshift({
           id: 'sess_' + Date.now(),
           subjectId: sub.id,
@@ -3384,12 +3695,14 @@
       }
 
       activeSubjectId = null;
+      activeSessionDateKey = null;
       isTimerPaused = false;
       sessionSeconds = 0;
       pauseElapsedSeconds = 0;
       pauseStartTimeObj = null;
       sessionPauses = [];
       sessionStartDateObj = null;
+      lastWallClockMs = null;
 
       const overlay = document.getElementById('focus-overlay');
       overlay.classList.add('hidden');
@@ -3874,7 +4187,7 @@
         .map(fp => {
           const isToday = fp.todayDateKey === TODAY_KEY;
           const liveExtra = (isToday && fp.isStudying && !fp.isPaused && fp.updatedAt)
-            ? Math.max(0, Math.min(3600, Math.floor((Date.now() - fp.updatedAt) / 1000)))
+            ? Math.max(0, Math.floor((Date.now() - fp.updatedAt) / 1000))
             : 0;
           const summary = computeUserPeriodSummary(fp, groupPeriod, selectedDateKey, liveExtra);
 
@@ -4004,6 +4317,7 @@
 
     setInterval(() => {
       if (!loggedInUserId) return;
+      if (activeTab === 'timer') renderTimerFriendsLiveBanner();
       if (activeTab === 'group') renderGroupTab();
       if (activeTab === 'admin' && isAdminUnlocked) renderAdminTab();
     }, 1000);
@@ -4030,220 +4344,223 @@
       document.getElementById('prof-status-input').value = appState.statusMessage || '';
       document.getElementById('prof-current-pw-input').value = '';
       document.getElementById('prof-new-pw-input').value = '';
-      document.getElementById('prof-current-pw-input').type = 'password';
-      document.getElementById('prof-new-pw-input').type = 'password';
       initEyeIcons();
       openModal('profile-modal');
     };
 
     window.handleProfileSave = async function(e) {
       e.preventDefault();
-      const nick = document.getElementById('prof-nickname-input').value.trim();
-      const status = document.getElementById('prof-status-input').value.trim();
-      if (nick) appState.nickname = nick;
-      appState.statusMessage = status || '오늘도 흔들림 없이 집중하기';
-      await persistState(true);
+      appState.nickname = document.getElementById('prof-nickname-input').value.trim() || appState.nickname;
+      appState.statusMessage = document.getElementById('prof-status-input').value.trim();
       closeModal('profile-modal');
+      await persistState(true);
       renderAll();
-      showToast('프로필 정보가 저장되었습니다.');
+      showToast('프로필이 저장되었습니다.');
     };
 
     window.openSubjectModal = function(subjectId = null) {
-      const titleEl = document.getElementById('subject-modal-title');
-      const idInput = document.getElementById('edit-subject-id');
-      const nameInput = document.getElementById('subject-name-input');
-      const goalHInput = document.getElementById('subject-goal-hours');
-      const goalMInput = document.getElementById('subject-goal-mins');
-      const delBtn = document.getElementById('btn-delete-subject');
+      const picker = document.getElementById('color-picker-grid');
+      picker.innerHTML = '';
 
       if (subjectId) {
         const sub = appState.subjects.find(s => s.id === subjectId);
         if (!sub) return;
-        titleEl.textContent = '과목 수정';
-        idInput.value = sub.id;
-        nameInput.value = sub.name;
-        const gSec = sub.goalSeconds || 0;
-        goalHInput.value = Math.floor(gSec / 3600);
-        goalMInput.value = Math.floor((gSec % 3600) / 60);
+        document.getElementById('subject-modal-title').textContent = '과목 설정 수정';
+        document.getElementById('edit-subject-id').value = sub.id;
+        document.getElementById('subject-name-input').value = sub.name;
+        const goalSec = sub.goalSeconds || 0;
+        document.getElementById('subject-goal-hours').value = Math.floor(goalSec / 3600);
+        document.getElementById('subject-goal-mins').value = Math.floor((goalSec % 3600) / 60);
         selectedModalColor = sub.color;
-        delBtn.classList.remove('hidden');
+        document.getElementById('btn-delete-subject').classList.remove('hidden');
       } else {
-        titleEl.textContent = '새 과목 추가';
-        idInput.value = '';
-        nameInput.value = '';
-        goalHInput.value = 0;
-        goalMInput.value = 0;
+        document.getElementById('subject-modal-title').textContent = '새 과목 추가';
+        document.getElementById('edit-subject-id').value = '';
+        document.getElementById('subject-name-input').value = '';
+        document.getElementById('subject-goal-hours').value = 0;
+        document.getElementById('subject-goal-mins').value = 0;
         selectedModalColor = SUBJECT_COLORS[appState.subjects.length % SUBJECT_COLORS.length];
-        delBtn.classList.add('hidden');
+        document.getElementById('btn-delete-subject').classList.add('hidden');
       }
 
-      renderColorPicker();
-      openModal('subject-modal');
-      setTimeout(() => nameInput.focus(), 50);
-    };
-
-    function renderColorPicker() {
-      const grid = document.getElementById('color-picker-grid');
-      grid.innerHTML = '';
-      SUBJECT_COLORS.forEach(hex => {
+      SUBJECT_COLORS.forEach(c => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = `w-9 h-9 rounded-full mx-auto flex items-center justify-center transition ${
-          selectedModalColor === hex ? 'ring-2 ring-offset-2 ring-[#0A0A0A] scale-105' : 'opacity-80 hover:opacity-100'
+        btn.className = `w-8 h-8 rounded-full transition flex items-center justify-center ${
+          selectedModalColor === c ? 'ring-2 ring-offset-2 ring-[#0A0A0A] scale-105' : 'opacity-80 hover:opacity-100'
         }`;
-        btn.style.backgroundColor = hex;
-        btn.innerHTML = selectedModalColor === hex ? '<span class="w-2.5 h-2.5 rounded-full bg-white"></span>' : '';
+        btn.style.backgroundColor = c;
         btn.onclick = () => {
-          selectedModalColor = hex;
-          renderColorPicker();
+          selectedModalColor = c;
+          openSubjectModal(subjectId);
         };
-        grid.appendChild(btn);
+        picker.appendChild(btn);
       });
-    }
+
+      openModal('subject-modal');
+    };
 
     window.saveSubject = async function(e) {
       e.preventDefault();
-      const id = document.getElementById('edit-subject-id').value;
+      const editId = document.getElementById('edit-subject-id').value;
       const name = document.getElementById('subject-name-input').value.trim();
-      const gH = parseInt(document.getElementById('subject-goal-hours').value || '0', 10);
-      const gM = parseInt(document.getElementById('subject-goal-mins').value || '0', 10);
-      const goalSeconds = (gH * 3600) + (gM * 60);
+      const hrs = Math.max(0, parseInt(document.getElementById('subject-goal-hours').value, 10) || 0);
+      const mins = Math.max(0, Math.min(59, parseInt(document.getElementById('subject-goal-mins').value, 10) || 0));
+      const goalSeconds = (hrs * 3600) + (mins * 60);
       if (!name) return;
 
-      if (id) {
-        const sub = appState.subjects.find(s => s.id === id);
+      if (editId) {
+        const sub = appState.subjects.find(s => s.id === editId);
         if (sub) {
           sub.name = name;
           sub.color = selectedModalColor;
           sub.goalSeconds = goalSeconds;
         }
-        showToast('과목 정보가 수정되었습니다.');
+        showToast('과목 설정이 수정되었습니다.');
       } else {
-        const newSub = {
-          id: 'sub_' + Date.now(),
+        const newId = 'sub_' + Date.now();
+        appState.subjects.push({
+          id: newId,
           name,
           color: selectedModalColor,
           goalSeconds
-        };
-        appState.subjects.push(newSub);
-        selectedBrushSubjectId = newSub.id;
+        });
+        if (!selectedBrushSubjectId) selectedBrushSubjectId = newId;
         showToast('새 과목이 추가되었습니다.');
       }
 
-      await persistState(true);
       closeModal('subject-modal');
+      await persistState(true);
       renderAll();
     };
 
     window.deleteCurrentSubject = async function() {
-      const id = document.getElementById('edit-subject-id').value;
-      if (!id) return;
-      appState.subjects = appState.subjects.filter(s => s.id !== id);
-      await persistState(true);
+      const editId = document.getElementById('edit-subject-id').value;
+      if (!editId) return;
+      if (activeSubjectId === editId) {
+        await finishFocusSession();
+      }
+      appState.subjects = appState.subjects.filter(s => s.id !== editId);
+      if (selectedBrushSubjectId === editId) {
+        selectedBrushSubjectId = appState.subjects[0]?.id || null;
+      }
       closeModal('subject-modal');
+      await persistState(true);
       renderAll();
       showToast('과목이 삭제되었습니다.');
     };
 
     window.openDdayModal = function(targetUserId = null) {
-      const isAdminTarget = Boolean(targetUserId && isAdminUnlocked);
-      const targetUser = isAdminTarget ? allAccountsMap[targetUserId] : appState;
-      if (!targetUser) return;
+      const resolvedTargetId = targetUserId || loggedInUserId;
+      const isEditingOtherUser = Boolean(targetUserId && targetUserId !== loggedInUserId && isAdminUnlocked);
+      const targetUser = (isEditingOtherUser && allAccountsMap[targetUserId])
+        ? hydrateUserObject(allAccountsMap[targetUserId])
+        : appState;
 
-      document.getElementById('dday-target-user-id').value = isAdminTarget ? targetUserId : '';
-      document.getElementById('dday-modal-title').textContent = isAdminTarget
-        ? `${targetUser.nickname}님 D-Day 지정`
+      document.getElementById('dday-target-user-id').value = resolvedTargetId || '';
+      document.getElementById('dday-modal-title').textContent = isEditingOtherUser
+        ? `${targetUser.nickname}님 D-Day 설정`
         : 'D-Day 목표 설정';
-      document.getElementById('dday-modal-subtitle').textContent = isAdminTarget
-        ? `관리자가 ${targetUser.nickname}(@${targetUser.userId}) 계정의 D-Day를 지정합니다.`
+      document.getElementById('dday-modal-subtitle').textContent = isEditingOtherUser
+        ? `${targetUser.nickname} (@${targetUser.userId}) 계정의 D-Day를 설정하거나 해제합니다.`
         : '목표 이름과 날짜를 설정하거나 비울 수 있습니다.';
 
-      const norm = normalizeDday(targetUser.dday);
-      const defaultDateObj = new Date(TODAY_OBJ);
-      defaultDateObj.setDate(defaultDateObj.getDate() + 14);
-
+      const norm = normalizeDday(targetUser && targetUser.dday);
       document.getElementById('dday-title-input').value = norm ? norm.title : '';
-      document.getElementById('dday-date-input').value = norm ? norm.targetDate : formatDateKey(defaultDateObj);
+      document.getElementById('dday-date-input').value = norm ? norm.targetDate : TODAY_KEY;
 
       const clearBtn = document.getElementById('btn-clear-dday');
-      if (norm) clearBtn.classList.remove('hidden');
-      else clearBtn.classList.add('hidden');
+      if (norm) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
 
       openModal('dday-modal');
-      setTimeout(() => document.getElementById('dday-title-input').focus(), 50);
     };
 
     window.saveDday = async function(e) {
       e.preventDefault();
-      const targetUserId = document.getElementById('dday-target-user-id').value.trim();
+      const targetId = document.getElementById('dday-target-user-id').value || loggedInUserId;
       const title = document.getElementById('dday-title-input').value.trim() || '목표일';
       const targetDate = document.getElementById('dday-date-input').value;
       if (!targetDate) return;
 
-      const newDday = { title, targetDate };
+      const nextDday = { title, targetDate };
 
-      if (targetUserId && isAdminUnlocked && allAccountsMap[targetUserId]) {
-        const targetUser = allAccountsMap[targetUserId];
-        targetUser.dday = newDday;
-        targetUser.updatedAt = Date.now();
-        if (targetUserId === loggedInUserId && appState) {
-          appState.dday = newDday;
-        }
+      if (targetId && targetId !== loggedInUserId && isAdminUnlocked && allAccountsMap[targetId]) {
+        const targetObj = hydrateUserObject(allAccountsMap[targetId]);
+        targetObj.dday = nextDday;
+        appendNotificationToUser(
+          targetObj,
+          'admin_edit',
+          '관리자가 D-Day를 설정했습니다',
+          `목표 "${title}" (${targetDate})로 업데이트되었습니다.`
+        );
+        allAccountsMap[targetId] = targetObj;
         saveLocalAccounts(allAccountsMap);
         if (getGasUrl()) {
-          await pushAccountToCloud(targetUser);
+          await pushAccountToCloud(targetObj);
         }
         closeModal('dday-modal');
         renderAll();
-        showToast(`${targetUser.nickname}님의 D-Day가 지정되었습니다.`);
+        showToast(`${targetObj.nickname}님의 D-Day가 적용되었습니다.`);
         return;
       }
 
-      appState.dday = newDday;
-      await persistState(true);
+      appState.dday = nextDday;
       closeModal('dday-modal');
-      renderHeader();
-      showToast('D-Day가 업데이트되었습니다.');
+      await persistState(true);
+      renderAll();
+      showToast('D-Day 목표가 적용되었습니다.');
     };
 
     window.clearDday = async function() {
-      const targetUserId = document.getElementById('dday-target-user-id').value.trim();
+      const targetId = document.getElementById('dday-target-user-id').value || loggedInUserId;
 
-      if (targetUserId && isAdminUnlocked && allAccountsMap[targetUserId]) {
-        const targetUser = allAccountsMap[targetUserId];
-        targetUser.dday = null;
-        targetUser.updatedAt = Date.now();
-        if (targetUserId === loggedInUserId && appState) {
-          appState.dday = null;
-        }
+      if (targetId && targetId !== loggedInUserId && isAdminUnlocked && allAccountsMap[targetId]) {
+        const targetObj = hydrateUserObject(allAccountsMap[targetId]);
+        targetObj.dday = null;
+        appendNotificationToUser(
+          targetObj,
+          'admin_edit',
+          '관리자가 D-Day를 해제했습니다',
+          'D-Day 목표가 미설정 상태로 변경되었습니다.'
+        );
+        allAccountsMap[targetId] = targetObj;
         saveLocalAccounts(allAccountsMap);
         if (getGasUrl()) {
-          await pushAccountToCloud(targetUser);
+          await pushAccountToCloud(targetObj);
         }
         closeModal('dday-modal');
         renderAll();
-        showToast(`${targetUser.nickname}님의 D-Day가 해제되었습니다.`);
+        showToast(`${targetObj.nickname}님의 D-Day가 해제되었습니다.`);
         return;
       }
 
       appState.dday = null;
-      await persistState(true);
       closeModal('dday-modal');
-      renderHeader();
+      await persistState(true);
+      renderAll();
       showToast('D-Day가 해제되었습니다.');
     };
 
     /* ==========================================================================
-       NAVIGATION & RENDER ORCHESTRATION
+       TAB SWITCHING & MASTER RENDER
        ========================================================================== */
     window.switchTab = function(tabName) {
-      if (tabName === 'admin' && !isAdminUnlocked) return;
+      if (tabName === 'admin' && !isAdminUnlocked) {
+        handleLogoSecretClick();
+        return;
+      }
+
       activeTab = tabName;
 
       document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.add('hidden');
       });
-      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      const targetPanel = document.getElementById(`tab-${tabName}`);
+      if (targetPanel) targetPanel.classList.remove('hidden');
 
       document.querySelectorAll('.nav-btn').forEach(btn => {
         if (btn.dataset.tab === tabName) {
@@ -4256,49 +4573,69 @@
       });
 
       renderAll();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
 
     function renderAll() {
       if (!appState) return;
       renderHeader();
-      if (activeTab === 'timer') renderTimerTab();
-      else if (activeTab === 'calendar') renderCalendarTab();
-      else if (activeTab === 'planner') renderPlannerTab();
-      else if (activeTab === 'stats') renderStatsTab();
-      else if (activeTab === 'group') renderGroupTab();
-      else if (activeTab === 'admin' && isAdminUnlocked) renderAdminTab();
+      renderTimerTab();
+      renderCalendarTab();
+      renderPlannerTab();
+      renderStatsTab();
+      renderGroupTab();
+      if (isAdminUnlocked) {
+        renderAdminTab();
+      }
     }
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      initEyeIcons();
-      allAccountsMap = loadLocalAccounts();
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    /* ==========================================================================
+       INITIALIZATION
+       ========================================================================== */
+    (async function init() {
       resolveAutoSyncUrl();
-      updateSyncBadgeUI('local');
+      initEyeIcons();
 
       if (getGasUrl()) {
         await fetchCloudAccounts();
       }
 
+      let savedUid = null;
       try {
-        const savedUid = sessionStorage.getItem(SESSION_KEY_UID);
-        if (savedUid && allAccountsMap[savedUid]) {
-          await loginAsUser(savedUid, allAccountsMap[savedUid].password);
-        }
+        savedUid = sessionStorage.getItem(SESSION_KEY_UID);
       } catch (e) {}
 
-      if (loggedInUserId) {
+      if (savedUid && allAccountsMap[savedUid]) {
+        loggedInUserId = savedUid;
+        appState = hydrateUserObject(allAccountsMap[savedUid]);
+        if (!appState.accountCode) {
+          appState.accountCode = generateAccountCode();
+          await persistState(false);
+        }
+
+        document.getElementById('login-screen').classList.add('hidden');
+        const appEl = document.getElementById('app');
+        appEl.classList.remove('hidden');
+        appEl.classList.add('flex');
+
+        if (appState.isAdmin || loggedInUserId === 'admin') {
+          isAdminUnlocked = true;
+          enableAdminNavUI();
+        }
+
+        restorePersistedActiveSessionIfAny();
         renderAll();
       }
-    });
+    })();
   </script>
 </body>
 </html>
